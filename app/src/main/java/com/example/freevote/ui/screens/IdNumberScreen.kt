@@ -4,6 +4,7 @@ package com.example.myapplication
 
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -32,8 +33,10 @@ import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.example.freevote.R
+import com.example.freevote.ui.screens.firestoreDb
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -51,6 +54,7 @@ val rubikMoonrocksFont = FontFamily(
 fun IdNumberScreen(navController: NavHostController) {
 
     var idNumber by remember { mutableStateOf("") }
+    val context =LocalContext.current
 
     Column(
         modifier = Modifier
@@ -105,9 +109,15 @@ fun IdNumberScreen(navController: NavHostController) {
 
             Button(
                 onClick = { /* Handle click */
-                    validateUserInHomeAffairs(idNumber)
-
-                    navController.navigate("pinScreen")
+                    validateUserInHomeAffairs(idNumber) { isValid, id ->
+                        if (isValid) {
+                            // ID is valid, proceed to registration
+                            navController.navigate("registrationScreen/$id")
+                        } else {
+                            // ID is invalid, show an error message
+                            Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 },
                 modifier = Modifier
                     .padding(start = 1.dp) // Add space between text field and button
@@ -169,29 +179,18 @@ fun Header() {
 }
 
 
-@SuppressLint("StaticFieldLeak")
-val firestoreDb = FirebaseFirestore.getInstance()
-// Firestore (Home Affairs)
-
-
-
-
-
-// Function to validate user in Firestore (Home Affairs)
-fun validateUserInHomeAffairs(userId: String,)  {
+fun validateUserInHomeAffairs(userId: String,callback: (Boolean, String) -> Unit) {
     firestoreDb.collection("citizens").document(userId)
         .get()
         .addOnSuccessListener { document ->
             if (document != null && document.exists()) {
-                println("The id number is valid")
-            } else {// User not found in Firestore (Home Affairs), show an error message
-                println("The id number is invalid")
-
+                callback(true, userId)
+            } else {callback(false, userId)
             }
         }
         .addOnFailureListener { e ->
             println("Error validating user in Firestore: $e")
-
+            callback(false, userId)
         }
 }
 

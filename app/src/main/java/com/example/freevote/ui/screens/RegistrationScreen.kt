@@ -46,7 +46,7 @@ val RubikMoonrocks = FontFamily(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavController) {
+fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navController: NavController) {
     // State variables for input fields
     var lName by remember { mutableStateOf("") }
     var names by remember { mutableStateOf("") }
