@@ -3,6 +3,7 @@
 package com.example.myapplication
 
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,7 +26,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color.Companion.Black
@@ -34,6 +34,8 @@ import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.navigation.NavHostController
 import com.example.freevote.R
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 
@@ -48,7 +50,7 @@ val rubikMoonrocksFont = FontFamily(
 @Composable
 fun IdNumberScreen(navController: NavHostController) {
 
-    var idNumber by remember { mutableStateOf(TextFieldValue("")) }
+    var idNumber by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -81,9 +83,7 @@ fun IdNumberScreen(navController: NavHostController) {
                 value = idNumber,
                 onValueChange = { idNumber = it },
                 label = {
-                    if (idNumber.text.isEmpty()) {
                         Text("ID NUMBER:", color = DarkGray)
-                    }
                 },
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 18.sp,
@@ -105,6 +105,8 @@ fun IdNumberScreen(navController: NavHostController) {
 
             Button(
                 onClick = { /* Handle click */
+                    validateUserInHomeAffairs(idNumber)
+
                     navController.navigate("pinScreen")
                 },
                 modifier = Modifier
@@ -165,5 +167,35 @@ fun Header() {
         )
     }
 }
+
+
+@SuppressLint("StaticFieldLeak")
+val firestoreDb = FirebaseFirestore.getInstance()
+// Firestore (Home Affairs)
+
+
+
+
+
+// Function to validate user in Firestore (Home Affairs)
+fun validateUserInHomeAffairs(userId: String,)  {
+    firestoreDb.collection("citizens").document(userId)
+        .get()
+        .addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                println("The id number is valid")
+            } else {// User not found in Firestore (Home Affairs), show an error message
+                println("The id number is invalid")
+
+            }
+        }
+        .addOnFailureListener { e ->
+            println("Error validating user in Firestore: $e")
+
+        }
+}
+
+
+
 
 

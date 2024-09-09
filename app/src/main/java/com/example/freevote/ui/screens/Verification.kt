@@ -29,7 +29,7 @@ fun storeUserInRealtimeDb(userId: String, userName: String) {
 
 // Function to validate user in Firestore (Home Affairs)
 fun validateUserInHomeAffairs(userId: String, userName: String) {
-    firestoreDb.collection("homeAffairsUsers").document(userId)
+    firestoreDb.collection("citizens").document(userId)
         .get()
         .addOnSuccessListener { document ->
             if (document != null && document.exists()) {
@@ -60,14 +60,7 @@ fun showErrorMessage(message: String) {
     println("Error: $message")
 }
 
-// Example usage
-fun main() {
-    val userId = "123456789"
-    val userName = "Jane Doe"
 
-    // Store user credentials in Realtime Database and validate in Firestore
-    storeUserInRealtimeDb(userId, userName)
-}
 
 @Composable
 fun UserValidationScreen(userId: String, userName: String, navController: NavController) {
