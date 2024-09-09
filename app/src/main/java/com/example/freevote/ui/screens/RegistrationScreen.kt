@@ -170,7 +170,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
                     Spacer(modifier = Modifier.width(200.dp))
                     Button(
                         onClick = {
-                            navController.navigate("createPinScreen")
+                            navController.navigate("user")
                         },
                         modifier = Modifier.height(30.dp),
                         shape = RoundedCornerShape(20.dp),
