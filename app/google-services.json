@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "254328247267",
+    "project_id": "freevote-60cd6",
+    "storage_bucket": "freevote-60cd6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:254328247267:android:8b4c32c1407b5ce81986d6",
+        "android_client_info": {
+          "package_name": "com.example.freevote"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh9EERbVXe7d6R3DccIPD-PA3Cj-fAK5U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
