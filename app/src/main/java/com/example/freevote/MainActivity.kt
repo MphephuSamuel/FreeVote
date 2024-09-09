@@ -38,5 +38,6 @@ fun Navigation() {
         composable("pinScreen"){ PinScreen(Modifier, navController)}
         composable("createPinScreen"){ CreatePinScreen(Modifier, navController) }
         composable("homeScreen"){ HomeScreen(Modifier, navController)}
+        composable("registrationScreen"){ RegistrationScreen(Modifier, navController)}
     }
 }
