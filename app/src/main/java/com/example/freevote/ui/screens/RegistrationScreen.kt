@@ -1,5 +1,6 @@
 package com.example.freevote.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freevote.R
+
 
 val RubikMoonrocks = FontFamily(
     Font(R.font.rubik_moonrocks)
@@ -54,6 +57,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
     var email by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    var context = LocalContext.current
 
     Spacer(modifier = Modifier.height(30.dp))
     Column(
@@ -156,7 +160,9 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
                 Spacer(modifier = Modifier.height(20.dp))
                 Row {
                     Button(
-                        onClick = { /* Handle back action */ },
+                        onClick = { /* Handle back action */
+                            navController.navigate("idNumberScreen")
+                        },
                         modifier = Modifier.height(30.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
@@ -170,7 +176,13 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
                     Spacer(modifier = Modifier.width(200.dp))
                     Button(
                         onClick = {
-                            navController.navigate("user")
+                            validateUserDetailsInHomeAffairs(idNumber, lName, names, gender){isValid, userId, lastName, names, gender ->
+                                if (isValid) {
+                                    navController.navigate("createPinScreen/$userId/$lastName/$names/$phoneNumber/$email/$gender/$address")
+                                } else {
+                                    Toast.makeText(context, "Invalid details", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         },
                         modifier = Modifier.height(30.dp),
                         shape = RoundedCornerShape(20.dp),
@@ -196,4 +208,29 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
                 .padding(8.dp)
         )
     }
+}
+
+// Function to validate user in Firestore (Home Affairs)
+fun validateUserDetailsInHomeAffairs(userId: String, lastName : String, names : String, gender : String, callback : (Boolean,String,String, String, String) -> Unit) {
+    firestoreDb.collection("citizens").document(userId)
+        .get()
+        .addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                val storedLastName = document.getString("lname")
+                val storedNames = document.getString("names")
+                val storedGender = document.getString("gender")
+                println(storedLastName==lastName)
+                println(names==storedNames)
+                println(gender==storedGender)
+                if (storedLastName == lastName && storedNames == names && storedGender == gender) {
+                    println("User validated successfully in Home Affairs DB")
+                    callback(true, userId, lastName, names, gender)
+                    // User is valid, allow voting or other actions
+                } else {
+                    println("Validation failed: Details Mismatch at home Affairs DB")
+                    callback(false, userId, lastName, names, gender)
+                    // Name does not match, show an error message
+                }
+            }
+        }
 }
