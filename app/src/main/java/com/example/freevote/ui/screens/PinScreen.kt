@@ -41,7 +41,7 @@ import com.example.freevote.R
 
 @OptIn(ExperimentalMaterial3Api::class)
         @Composable
-        fun PinScreen(modifier: Modifier, navController: NavController) {
+        fun PinScreen(modifier: Modifier, idNumber: String, navController: NavController) {
             val context = LocalContext.current
             val pin = remember { mutableStateOf(TextFieldValue()) }
 
