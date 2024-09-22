@@ -156,7 +156,6 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                     }
 
                     Spacer(modifier = Modifier.width(200.dp))
-                    
                     Button(
                         onClick = {
                             if (pinValue == confirmPinValue) {
@@ -200,6 +199,7 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
         )
     }
     SnackbarHost(hostState = snackbarHostState)
+
 }
 
 // Function to store user credentials in Realtime Database
@@ -248,6 +248,7 @@ data class UserData(
     // Adjust parameters as necessary (iterations, memory, parallelism)
     val hash = argon2.hash(10, 65536, 1, pin.toCharArray())
     return hash
-}*/
 
+=======
+}*/
 
