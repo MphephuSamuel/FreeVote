@@ -36,7 +36,6 @@ fun Navigation() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "idNumberScreen") {
         composable("idNumberScreen") { IdNumberScreen(navController) }
-        composable("createPinScreen"){ CreatePinScreen(Modifier, navController) }
         composable("homeScreen"){ HomeScreen(Modifier, navController)}
         composable(
             route = "registrationScreen/{ID_NUMBER}",
@@ -53,7 +52,31 @@ fun Navigation() {
         ) { backStackEntry ->
             PinScreen(
                 navController = navController,
-                idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: ""
+                idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: "",
+                modifier = Modifier
+            )
+        }
+        composable(
+            route = "CreatePinScreen/{ID_NUMBER}/{LAST_NAME}/{NAMES}/{PHONE_NUMBER}/{EMAIL}/{GENDER}/{ADDRESS}",
+            arguments = listOf(
+                navArgument("ID_NUMBER") { type = NavType.StringType },
+                navArgument("LAST_NAME") { type = NavType.StringType },
+                navArgument("NAMES") { type = NavType.StringType },
+                navArgument("PHONE_NUMBER") { type = NavType.StringType },
+                navArgument("EMAIL") { type = NavType.StringType },
+                navArgument("GENDER") { type = NavType.StringType },
+                navArgument("ADDRESS") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            CreatePinScreen(
+                navController = navController,
+                idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: "",
+                lastName = backStackEntry.arguments?.getString("LAST_NAME") ?: "",
+                names = backStackEntry.arguments?.getString("NAMES") ?: "",
+                phoneNumber = backStackEntry.arguments?.getString("PHONE_NUMBER") ?: "",
+                email = backStackEntry.arguments?.getString("EMAIL") ?: "",
+                gender = backStackEntry.arguments?.getString("GENDER") ?: "",
+                address = backStackEntry.arguments?.getString("ADDRESS") ?: ""
             )
         }
     }

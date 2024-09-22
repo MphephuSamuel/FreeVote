@@ -4,26 +4,26 @@ package com.example.myapplication
 
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -36,16 +36,23 @@ import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.navigation.NavController
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavHostController
 import com.example.freevote.R
 import com.example.freevote.ui.screens.firestoreDb
+import com.google.firebase.Firebase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+
 
 
 val rubikMoonrocksFont = FontFamily(
@@ -60,17 +67,38 @@ val rubikMoonrocksFont = FontFamily(
 fun IdNumberScreen(navController: NavHostController) {
 
     var idNumber by remember { mutableStateOf("") }
-    val context =LocalContext.current
-
-    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Header()
+        // Text header
+        Text(
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.Black)) {
+                    append("FREE")
+                }
+                withStyle(style = SpanStyle(color = Color.Red)) {
+                    append("vote")
+                }
+                withStyle(style = SpanStyle(color = Color(0xFF006400))) {
+                    append("!")
+                }
+            },
+            fontFamily = rubikMoonrocksFont,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = 48.sp,
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(4f, 4f),
+                    blurRadius = 8f
+                )
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
 
         Spacer(modifier = Modifier.height(26.dp))
 
@@ -86,58 +114,89 @@ fun IdNumberScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // Row to place the TextField and Button horizontally
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = Color.Black, // Black color
+                    shape = RectangleShape // Rectangular shape
+                )
+                .padding(1.dp) // Padding between border and content
         ) {
-            // OutlinedTextField with rounded shape, shadow, and background color
-            OutlinedTextField(
-                value = idNumber,
-                onValueChange = { idNumber = it },
-                label = {
-                        Text("ID NUMBER:", color = DarkGray)
-                },
-                textStyle = androidx.compose.ui.text.TextStyle(
-                    fontSize = 18.sp,
-                    color = White
-                ),
-
-                modifier = Modifier
-                    .weight(1f)
-                    .height(57.dp)
-                    .shadow(8.dp, RoundedCornerShape(0.dp)) // Shadow for TextField
-                    .background(Color(0xFFF1A911)),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Transparent,
-                    unfocusedBorderColor = Transparent,
-                    cursorColor = White,
-
-                )
-
-            )
-
-            Button(
-                onClick = {
-
-                    validateUserAndNavigate(idNumber, navController, context, coroutineScope)
-                },
-                modifier = Modifier
-                    .padding(start = 1.dp) // Add space between text field and button
-                    .size(57.dp), // Adjust size to match TextField height
-                shape = RoundedCornerShape(0.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = White,
-                    modifier = Modifier.size(150.dp) // Set the icon size
+                // OutlinedTextField with rounded shape, shadow, and background color
+                TextField(
+                    value = idNumber,
+                    onValueChange = { idNumber = it },
+                    label = {
+                        Text("ID NUMBER:", color = DarkGray)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(57.dp),
+                    shape = RectangleShape, // All corners will be square
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911),
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    )
                 )
+
+                Button(
+                    onClick = {
+                        if (idNumber == "") {
+                            Toast.makeText(
+                                context,
+                                "Please enter your ID number",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
+                                if (isValidFirestore) {
+                                    // ID is valid in Firestore, now check Realtime Database
+                                    validateUserInRealtimeDb(idNumber) { isValidRealtime ->
+                                        if (isValidRealtime) {
+                                            // ID is valid in both, proceed to pin screen
+                                            navController.navigate("pinScreen/$id")
+                                        } else {
+                                            // ID is only valid in Firestore, proceed to registration screen
+                                            navController.navigate("registrationScreen/$id")
+                                        }
+                                    }
+                                } else {
+                                    // ID is invalid in Firestore, show an error message
+                                    Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(start = 1.dp) // Add space between text field and button
+                        .size(57.dp), // Adjust size to match TextField height
+                    shape = RoundedCornerShape(0.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+                ) {
+                    Icon(
+                        Icons.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = White,
+                        modifier = Modifier.size(150.dp) // Set the icon size
+                    )
+
+                }
             }
+
+
+
+
         }
-
         Spacer(modifier = Modifier.height(130.dp))
-
         Image(
             painter = painterResource(id = R.drawable.people), // Ensure the drawable exists
             contentDescription = null,
@@ -180,39 +239,40 @@ fun Header() {
     }
 }
 
-
-
-
-
-fun validateUserAndNavigate(idNumber: String, navController: NavHostController,context: Context, coroutineScope: CoroutineScope) {
-
-    val firestoreCheck = firestoreDb.collection("citizens").document(idNumber).get()
-    val realtimeCheck = FirebaseDatabase.getInstance().reference.child("users").child(idNumber).get()
-
-    firestoreCheck.addOnSuccessListener { firestoreDocument->
-        realtimeCheck.addOnSuccessListener { realtimeSnapshot ->
-            if (firestoreDocument.exists() && realtimeSnapshot.exists()) {
-
-                navController.navigate("pinScreen/$idNumber")
-            } else if (firestoreDocument.exists()) {
-
-                navController.navigate("registrationScreen/$idNumber")
+fun validateUserInHomeAffairs(userId: String,callback: (Boolean, String) -> Unit) {
+    firestoreDb.collection("citizens").document(userId)
+        .get()
+        .addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                callback(true, userId)
             } else {
-                coroutineScope.launch {
-                    Toast.makeText(context, "Invalid ID Number", Toast.LENGTH_SHORT).show()
-                }
-
-
+                callback(false, userId)
             }
-        }.addOnFailureListener { e ->
-            println("Error checking Realtime Database: $e")
-
         }
-    }.addOnFailureListener { e ->
-        println("Error checking Firestore: $e")
-    }
+        .addOnFailureListener { e ->
+            println("Error validating user in Firestore: $e")
+            callback(false, userId)
+        }
 }
 
+    fun validateUserInRealtimeDb(userId: String, callback: (Boolean) -> Unit) {
+        val usersRef = Firebase.database.reference.child("users").child(userId)
+
+        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    callback(true)
+                } else {
+                    callback(false)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                println("Error validating user in Realtime Database: ${error.toException()}")
+                callback(false)
+            }
+        })
+    }
 
 
 

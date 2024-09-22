@@ -12,7 +12,7 @@ fun HomeScreen (modifier: Modifier, navController: NavController) {
 
     Column {
         Text(text = "Welcome")
-        Button(onClick = { navController.navigate(" ") }) {
+        Button(onClick = { navController.navigate("pinScreen") }) {
 
         }
     }
