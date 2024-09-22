@@ -38,9 +38,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shadow
+
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -54,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freevote.R
+
 
 val RubikMoonrocks = FontFamily(
     Font(R.font.rubik_moonrocks)
@@ -69,7 +72,9 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
     var email by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
-    val context = LocalContext.current
+
+    var context = LocalContext.current
+
 
     Spacer(modifier = Modifier.height(30.dp))
     Column(
@@ -189,7 +194,9 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
                 Spacer(modifier = Modifier.height(20.dp))
                 Row {
                     Button(
-                        onClick = { /* Handle back action */ },
+                        onClick = { /* Handle back action */
+                            navController.navigate("idNumberScreen")
+                        },
                         modifier = Modifier.height(30.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
@@ -236,6 +243,9 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
         )
     }
 }
+
+
+// Function to validate user in Firestore (Home Affairs)
 
 fun validateUserDetailsInHomeAffairs(userId: String, lastName : String, names : String, gender : String, callback : (Boolean,String,String, String, String) -> Unit) {
     firestoreDb.collection("citizens").document(userId)

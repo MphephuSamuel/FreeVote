@@ -45,7 +45,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavHostController
 import com.example.freevote.R
 import com.example.freevote.ui.screens.firestoreDb
+import com.google.firebase.Firebase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
 
 
@@ -141,29 +146,43 @@ fun IdNumberScreen(navController: NavHostController) {
                         disabledIndicatorColor = Transparent
                     )
                 )
-                Button(
-                    onClick = {
-                        validateUserInHomeAffairs(idNumber) { isValid, id ->
-                            if (isValid) {
-                                navController.navigate("registrationScreen/$id")
-                            } else {
-                                Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
+
+            Button(onClick = {
+                if (idNumber == "") {
+                    Toast.makeText(context, "Please enter your ID number",Toast.LENGTH_SHORT).show()
+                } else {
+                    validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
+                        if (isValidFirestore) {
+                            // ID is valid in Firestore, now check Realtime Database
+                            validateUserInRealtimeDb(idNumber) { isValidRealtime ->
+                                if (isValidRealtime) {
+                                    // ID is valid in both, proceed to pin screen
+                                    navController.navigate("pinScreen/$id")
+                                } else {
+                                    // ID is only valid in Firestore, proceed to registration screen
+                                    navController.navigate("registrationScreen/$id")
+                                }
                             }
+                        } else {
+                            // ID is invalid in Firestore, show an error message
+                            Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
                         }
-                    },
-                    modifier = Modifier
-                        .padding(start = 1.dp) // Space between text field and button
-                        .size(57.dp), // Adjust size to match TextField height
-                    shape = RoundedCornerShape(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.fillMaxWidth() // Adjust size of the icon to fit the button
-                    )
+                    }
                 }
+            },
+                modifier = Modifier
+                    .padding(start = 1.dp) // Add space between text field and button
+                    .size(57.dp), // Adjust size to match TextField height
+                shape = RoundedCornerShape(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+            ) {
+                Icon(
+                    Icons.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = White,
+                    modifier = Modifier.size(150.dp) // Set the icon size
+                )
+
             }
         }
 
@@ -228,7 +247,24 @@ fun validateUserInHomeAffairs(userId: String,callback: (Boolean, String) -> Unit
         }
 }
 
+fun validateUserInRealtimeDb(userId: String, callback: (Boolean) -> Unit) {
+    val usersRef = Firebase.database.reference.child("users").child(userId)
 
+    usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            if (snapshot.exists()) {
+                callback(true)
+            } else {
+                callback(false)
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            println("Error validating user in Realtime Database: ${error.toException()}")
+            callback(false)
+        }
+    })
+}
 
 
 
