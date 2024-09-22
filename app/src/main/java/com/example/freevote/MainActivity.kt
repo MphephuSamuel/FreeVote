@@ -36,7 +36,7 @@ fun Navigation() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "idNumberScreen") {
         composable("idNumberScreen") { IdNumberScreen(navController) }
-        composable("pinScreen"){ PinScreen(Modifier, navController)}
+
         composable("createPinScreen"){ CreatePinScreen(Modifier, navController) }
         composable("homeScreen"){ HomeScreen(Modifier, navController)}
         composable(
@@ -44,6 +44,14 @@ fun Navigation() {
             arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })
         ) { backStackEntry ->
             RegistrationScreen(
+                navController = navController,
+                idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: ""
+            )
+        }
+        composable(  route = "pinScreen/{ID_NUMBER}",
+            arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })
+        ) { backStackEntry ->
+            PinScreen(
                 navController = navController,
                 idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: ""
             )

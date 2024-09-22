@@ -1,5 +1,6 @@
 package com.example.freevote.ui.screens
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -20,12 +21,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,15 +41,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.freevote.R
+import com.google.firebase.database.FirebaseDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import java.security.MessageDigest
 
 @OptIn(ExperimentalMaterial3Api::class)
         @Composable
-        fun PinScreen(modifier: Modifier, navController: NavController) {
+        fun PinScreen(modifier: Modifier = Modifier,idNumber: String, navController: NavController) {
             val context = LocalContext.current
             val pin = remember { mutableStateOf(TextFieldValue()) }
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-            Column(
+
+    Column(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(16.dp),
@@ -92,7 +104,7 @@ import com.example.freevote.R
                         value = pin.value,
                         onValueChange = { newValue ->
                             // Filter out non-numeric characters
-                            if (newValue.text.all { it.isDigit() } && newValue.text.length <= 5) {
+                            if (newValue.text.all { it.isDigit() } && newValue.text.length <= 6) {
                                 pin.value = newValue
                             }
                         },
@@ -105,7 +117,17 @@ import com.example.freevote.R
                     )
 
                     Button(
-                        onClick = {navController.navigate("homeScreen") },
+                        onClick = {if (pin.value.text.isNotBlank()) {
+                            verifyPinAndNavigate(pin.value.text, idNumber, navController, context, coroutineScope, snackbarHostState)
+                        } else {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "Please enter your PIN",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(57.dp),
@@ -165,4 +187,53 @@ import com.example.freevote.R
             }
         }
 
+fun verifyPinAndNavigate(
+    enteredPin: String,
+    idNumber: String,
+    navController: NavController,
+    context: Context,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState
+) {
+    val database = FirebaseDatabase.getInstance()
+    val usersRef = database.reference.child("users").child(idNumber)
 
+    usersRef.get().addOnSuccessListener { snapshot ->
+        if (snapshot.exists()) {
+            val storedHashedPin = snapshot.child("pin").value as String
+            val enteredHashedPin = hashPin(enteredPin)
+
+            if (enteredHashedPin == storedHashedPin) {
+                navController.navigate("homeScreen")
+            } else {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Incorrect PIN",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        } else {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "User not found",
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }.addOnFailureListener { e ->
+        println("Error verifying PIN: $e")
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar(
+                message = "Error verifying PIN",
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+}
+
+private fun hashPin(pin: String): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    val hash = digest.digest(pin.toByteArray())
+    return hash.joinToString("") { String.format("%02x", it) }
+}
