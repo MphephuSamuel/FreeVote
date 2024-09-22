@@ -4,11 +4,13 @@ package com.example.myapplication
 
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
@@ -16,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,12 +37,15 @@ import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.freevote.R
 import com.example.freevote.ui.screens.firestoreDb
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
-
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 
 val rubikMoonrocksFont = FontFamily(
@@ -55,6 +61,8 @@ fun IdNumberScreen(navController: NavHostController) {
 
     var idNumber by remember { mutableStateOf("") }
     val context =LocalContext.current
+
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -93,31 +101,25 @@ fun IdNumberScreen(navController: NavHostController) {
                     fontSize = 18.sp,
                     color = White
                 ),
+
                 modifier = Modifier
                     .weight(1f)
                     .height(57.dp)
-                    .clip(RoundedCornerShape(0.dp))
                     .shadow(8.dp, RoundedCornerShape(0.dp)) // Shadow for TextField
                     .background(Color(0xFFF1A911)),
-                shape = RoundedCornerShape(0.dp), // Ensure the shape is applied directly
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Transparent,
                     unfocusedBorderColor = Transparent,
-                    cursorColor = White
+                    cursorColor = White,
+
                 )
+
             )
 
             Button(
-                onClick = { /* Handle click */
-                    validateUserInHomeAffairs(idNumber) { isValid, id ->
-                        if (isValid) {
-                            // ID is valid, proceed to registration
-                            navController.navigate("registrationScreen/$id")
-                        } else {
-                            // ID is invalid, show an error message
-                            Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                onClick = {
+
+                    validateUserAndNavigate(idNumber, navController, context, coroutineScope)
                 },
                 modifier = Modifier
                     .padding(start = 1.dp) // Add space between text field and button
@@ -179,21 +181,37 @@ fun Header() {
 }
 
 
-fun validateUserInHomeAffairs(userId: String,callback: (Boolean, String) -> Unit) {
-    firestoreDb.collection("citizens").document(userId)
-        .get()
-        .addOnSuccessListener { document ->
-            if (document != null && document.exists()) {
-                callback(true, userId)
-            } else {callback(false, userId)
-            }
-        }
-        .addOnFailureListener { e ->
-            println("Error validating user in Firestore: $e")
-            callback(false, userId)
-        }
-}
 
+
+
+fun validateUserAndNavigate(idNumber: String, navController: NavHostController,context: Context, coroutineScope: CoroutineScope) {
+
+    val firestoreCheck = firestoreDb.collection("citizens").document(idNumber).get()
+    val realtimeCheck = FirebaseDatabase.getInstance().reference.child("users").child(idNumber).get()
+
+    firestoreCheck.addOnSuccessListener { firestoreDocument->
+        realtimeCheck.addOnSuccessListener { realtimeSnapshot ->
+            if (firestoreDocument.exists() && realtimeSnapshot.exists()) {
+
+                navController.navigate("pinScreen/$idNumber")
+            } else if (firestoreDocument.exists()) {
+
+                navController.navigate("registrationScreen/$idNumber")
+            } else {
+                coroutineScope.launch {
+                    Toast.makeText(context, "Invalid ID Number", Toast.LENGTH_SHORT).show()
+                }
+
+
+            }
+        }.addOnFailureListener { e ->
+            println("Error checking Realtime Database: $e")
+
+        }
+    }.addOnFailureListener { e ->
+        println("Error checking Firestore: $e")
+    }
+}
 
 
 
