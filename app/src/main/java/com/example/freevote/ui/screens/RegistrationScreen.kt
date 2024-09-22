@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -192,7 +193,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Row {
+                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Button(
                         onClick = { /* Handle back action */
                             navController.navigate("idNumberScreen")
@@ -207,7 +208,6 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
                             tint = Color.White
                         )
                     }
-                    Spacer(modifier = Modifier.width(200.dp))
                     Button(
                         onClick = {
                             validateUserDetailsInHomeAffairs(idNumber, lName, names, gender){isValid, userId, lastName, names, gender ->

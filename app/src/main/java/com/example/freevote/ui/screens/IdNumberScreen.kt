@@ -67,7 +67,7 @@ val rubikMoonrocksFont = FontFamily(
 fun IdNumberScreen(navController: NavHostController) {
 
     var idNumber by remember { mutableStateOf("") }
-    val context =LocalContext.current
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -147,48 +147,56 @@ fun IdNumberScreen(navController: NavHostController) {
                     )
                 )
 
-            Button(onClick = {
-                if (idNumber == "") {
-                    Toast.makeText(context, "Please enter your ID number",Toast.LENGTH_SHORT).show()
-                } else {
-                    validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
-                        if (isValidFirestore) {
-                            // ID is valid in Firestore, now check Realtime Database
-                            validateUserInRealtimeDb(idNumber) { isValidRealtime ->
-                                if (isValidRealtime) {
-                                    // ID is valid in both, proceed to pin screen
-                                    navController.navigate("pinScreen/$id")
+                Button(
+                    onClick = {
+                        if (idNumber == "") {
+                            Toast.makeText(
+                                context,
+                                "Please enter your ID number",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
+                                if (isValidFirestore) {
+                                    // ID is valid in Firestore, now check Realtime Database
+                                    validateUserInRealtimeDb(idNumber) { isValidRealtime ->
+                                        if (isValidRealtime) {
+                                            // ID is valid in both, proceed to pin screen
+                                            navController.navigate("pinScreen/$id")
+                                        } else {
+                                            // ID is only valid in Firestore, proceed to registration screen
+                                            navController.navigate("registrationScreen/$id")
+                                        }
+                                    }
                                 } else {
-                                    // ID is only valid in Firestore, proceed to registration screen
-                                    navController.navigate("registrationScreen/$id")
+                                    // ID is invalid in Firestore, show an error message
+                                    Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                             }
-                        } else {
-                            // ID is invalid in Firestore, show an error message
-                            Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
                         }
-                    }
+                    },
+                    modifier = Modifier
+                        .padding(start = 1.dp) // Add space between text field and button
+                        .size(57.dp), // Adjust size to match TextField height
+                    shape = RoundedCornerShape(0.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+                ) {
+                    Icon(
+                        Icons.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = White,
+                        modifier = Modifier.size(150.dp) // Set the icon size
+                    )
+
                 }
-            },
-                modifier = Modifier
-                    .padding(start = 1.dp) // Add space between text field and button
-                    .size(57.dp), // Adjust size to match TextField height
-                shape = RoundedCornerShape(0.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
-            ) {
-                Icon(
-                    Icons.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = White,
-                    modifier = Modifier.size(150.dp) // Set the icon size
-                )
-
             }
+
+
+
+
         }
-
-
-        Spacer(modifier = Modifier.height(225.dp))
-
+        Spacer(modifier = Modifier.height(130.dp))
         Image(
             painter = painterResource(id = R.drawable.people), // Ensure the drawable exists
             contentDescription = null,
@@ -231,14 +239,14 @@ fun Header() {
     }
 }
 
-
 fun validateUserInHomeAffairs(userId: String,callback: (Boolean, String) -> Unit) {
     firestoreDb.collection("citizens").document(userId)
         .get()
         .addOnSuccessListener { document ->
             if (document != null && document.exists()) {
                 callback(true, userId)
-            } else {callback(false, userId)
+            } else {
+                callback(false, userId)
             }
         }
         .addOnFailureListener { e ->
@@ -247,24 +255,24 @@ fun validateUserInHomeAffairs(userId: String,callback: (Boolean, String) -> Unit
         }
 }
 
-fun validateUserInRealtimeDb(userId: String, callback: (Boolean) -> Unit) {
-    val usersRef = Firebase.database.reference.child("users").child(userId)
+    fun validateUserInRealtimeDb(userId: String, callback: (Boolean) -> Unit) {
+        val usersRef = Firebase.database.reference.child("users").child(userId)
 
-    usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            if (snapshot.exists()) {
-                callback(true)
-            } else {
+        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    callback(true)
+                } else {
+                    callback(false)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                println("Error validating user in Realtime Database: ${error.toException()}")
                 callback(false)
             }
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-            println("Error validating user in Realtime Database: ${error.toException()}")
-            callback(false)
-        }
-    })
-}
+        })
+    }
 
 
 
