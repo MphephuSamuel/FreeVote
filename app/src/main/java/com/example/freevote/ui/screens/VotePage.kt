@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freevote.R
+import com.example.freevote.viewmodel.MainViewModel
 
 
 val AbhayaLibreExtraBold = FontFamily(
@@ -67,7 +68,7 @@ val AbhayaLibreExtraBold = FontFamily(
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
-fun VotePage(modifier: Modifier, navController: NavController) {
+fun VotePage(modifier: Modifier, navController: NavController, viewModel: MainViewModel) {
     // Define the custom font
     val Rubikmoonroocks = FontFamily(
         Font(R.font.rubik_moonrocks)

@@ -49,7 +49,7 @@ fun PinScreen(navController: NavController,
               idNumber: String,
               viewModel: MainViewModel, // Make sure to use the correct ViewModel type
               modifier: Modifier = Modifier // Default value for modifier
-     )
+)
 {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
@@ -121,7 +121,7 @@ fun PinScreen(navController: NavController,
             Button(
                 onClick = {
                     // Navigate to homeScreen
-                    navController.navigate("homeScreen")
+                    navController.navigate("homenews")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,5 +178,3 @@ fun PinScreen(navController: NavController,
         )
     }
 }
-
-

@@ -3,6 +3,7 @@ package com.example.freevote
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
@@ -12,8 +13,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.freevote.ui.screens.CreatePinScreen
 import com.example.freevote.ui.screens.HomeScreen
+import com.example.freevote.ui.screens.MainScreen
 import com.example.freevote.ui.screens.PinScreen
 import com.example.freevote.ui.screens.RegistrationScreen
+import com.example.freevote.ui.screens.VotePage
 import com.example.myapplication.IdNumberScreen
 import com.example.myproject1.ui.theme.FreeVoteTheme
 import androidx.activity.viewModels
@@ -24,9 +27,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             FreeVoteTheme {
-                Navigation(viewModel) // Pass the ViewModel to the Navigation
+                Navigation(viewModel)
+
             }
         }
     }
@@ -35,22 +40,24 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Navigation(viewModel: MainViewModel) {
     val navController = rememberNavController()
-
     NavHost(navController = navController, startDestination = "idNumberScreen") {
         composable("idNumberScreen") { IdNumberScreen(navController, viewModel) }
         composable("homeScreen") { HomeScreen(Modifier, navController, viewModel) }
+        composable("homenews") { MainScreen(navController, viewModel) }
+        composable("vote") { VotePage(Modifier, navController, viewModel) }
+
         composable(
             route = "registrationScreen/{ID_NUMBER}",
             arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })
         ) { backStackEntry ->
             val idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: ""
-            // Use the same instance of ViewModel passed from MainActivity
             RegistrationScreen(
                 navController = navController,
                 idNumber = idNumber,
-                viewModel = viewModel // Use the activity-scoped ViewModel
+                viewModel = viewModel // Pass ViewModel as the last argument
             )
         }
+
         composable(
             route = "pinScreen/{ID_NUMBER}",
             arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })
@@ -59,7 +66,7 @@ fun Navigation(viewModel: MainViewModel) {
             PinScreen(
                 navController = navController,
                 idNumber = idNumber,
-                viewModel = viewModel,
+                viewModel = viewModel, // Pass ViewModel as the last argument
                 modifier = Modifier
             )
         }
@@ -85,7 +92,7 @@ fun Navigation(viewModel: MainViewModel) {
                 email = backStackEntry.arguments?.getString("EMAIL") ?: "",
                 gender = backStackEntry.arguments?.getString("GENDER") ?: "",
                 address = backStackEntry.arguments?.getString("ADDRESS") ?: "",
-                viewModel = viewModel
+                viewModel = viewModel // Pass ViewModel as the last argument
             )
         }
     }

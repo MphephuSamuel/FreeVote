@@ -252,24 +252,21 @@ fun validateUserInHomeAffairs(userId: String,callback: (Boolean, String) -> Unit
         }
 }
 
-    fun validateUserInRealtimeDb(userId: String, callback: (Boolean) -> Unit) {
-        val usersRef = Firebase.database.reference.child("users").child(userId)
+fun validateUserInRealtimeDb(userId: String, callback: (Boolean) -> Unit) {
+    val usersRef = Firebase.database.reference.child("users").child(userId)
 
-        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    callback(true)
-                } else {
-                    callback(false)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                println("Error validating user in Realtime Database: ${error.toException()}")
+    usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            if (snapshot.exists()) {
+                callback(true)
+            } else {
                 callback(false)
             }
-        })
-    }
+        }
 
-
-
+        override fun onCancelled(error: DatabaseError) {
+            println("Error validating user in Realtime Database: ${error.toException()}")
+            callback(false)
+        }
+    })
+}
