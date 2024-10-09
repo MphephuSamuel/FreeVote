@@ -13,8 +13,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.freevote.ui.screens.CreatePinScreen
 import com.example.freevote.ui.screens.HomeScreen
+import com.example.freevote.ui.screens.MainScreen
 import com.example.freevote.ui.screens.PinScreen
 import com.example.freevote.ui.screens.RegistrationScreen
+import com.example.freevote.ui.screens.VotePage
 import com.example.myapplication.IdNumberScreen
 import com.example.myproject1.ui.theme.FreeVoteTheme
 
@@ -37,6 +39,8 @@ fun Navigation() {
     NavHost(navController = navController, startDestination = "idNumberScreen") {
         composable("idNumberScreen") { IdNumberScreen(navController) }
         composable("homeScreen"){ HomeScreen(Modifier, navController)}
+        composable("homenews"){ MainScreen(navController) }
+        composable("vote"){ VotePage(Modifier, navController)}
         composable(
             route = "registrationScreen/{ID_NUMBER}",
             arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })

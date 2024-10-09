@@ -92,7 +92,7 @@ import com.example.freevote.R
                         value = pin.value,
                         onValueChange = { newValue ->
                             // Filter out non-numeric characters
-                            if (newValue.text.all { it.isDigit() } && newValue.text.length <= 5) {
+                            if (newValue.text.all { it.isDigit() } && newValue.text.length <= 6) {
                                 pin.value = newValue
                             }
                         },
@@ -105,7 +105,7 @@ import com.example.freevote.R
                     )
 
                     Button(
-                        onClick = {navController.navigate("homeScreen") },
+                        onClick = {navController.navigate("homenews") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(57.dp),
@@ -164,5 +164,6 @@ import com.example.freevote.R
                 )
             }
         }
+
 
 

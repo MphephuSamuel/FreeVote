@@ -38,7 +38,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -53,7 +52,7 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                     lastName: String, names: String, phoneNumber: String,
                     email: String, gender: String, address: String
 ) {
-    val pinChange = remember { mutableStateOf("") }
+    val createPin = remember { mutableStateOf("") }
     val confirm = remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -108,11 +107,11 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 TextField(
-                    value = pinChange.value,
+                    value = createPin.value,
                     onValueChange = { newValue ->
-                        pinChange.value = newValue.filter { it.isDigit() }.take(6)
+                        createPin.value = newValue.filter { it.isDigit() }.take(6)
                     },
-                    label = { Text("Change Pin") },
+                    label = { Text("Create Pin") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(57.dp),
@@ -121,7 +120,7 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     visualTransformation = PasswordVisualTransformation() // Add this line
                 )
-                val pinValue = pinChange.value
+                val pinValue = createPin.value
                 Spacer(modifier = Modifier.height(16.dp))
                 TextField(
                     value = confirm.value,
@@ -142,7 +141,7 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                 Row {
                     Button(
                         onClick = {
-                            navController.navigate("registrationScreen")
+                            navController.navigate("home")
                         },
                         modifier = Modifier
                             .height(30.dp),
@@ -201,6 +200,8 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
     SnackbarHost(hostState = snackbarHostState)
 
 }
+
+
 
 // Function to store user credentials in Realtime Database
 fun storeUserInRealtimeDb(userId: String, lastName : String, names : String, phoneNumber: String,
