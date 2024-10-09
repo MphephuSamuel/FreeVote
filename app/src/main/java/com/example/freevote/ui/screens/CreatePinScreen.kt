@@ -1,34 +1,16 @@
-@file:Suppress("DEPRECATION")
-
 package com.example.freevote.ui.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -38,66 +20,69 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freevote.R
+import com.example.freevote.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController, idNumber: String,
-                    lastName: String, names: String, phoneNumber: String,
-                    email: String, gender: String, address: String
+fun CreatePinScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    idNumber: String,
+    lastName: String,
+    names: String,
+    phoneNumber: String,
+    email: String,
+    gender: String,
+    address: String,
+    viewModel: MainViewModel
 ) {
-    val pinChange = remember { mutableStateOf("") }
-    val confirm = remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     Spacer(modifier = Modifier.height(30.dp))
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp) // Padding for the Column layout
+            .padding(16.dp)
+            .verticalScroll(scrollState)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "FREE",
-                fontFamily = RubikMoonrocks,
                 fontSize = 60.sp,
                 color = Color.Black,
                 modifier = Modifier.padding(end = 4.dp)
             )
             Text(
                 text = "vote",
-                fontFamily = RubikMoonrocks,
                 fontSize = 50.sp,
                 color = Color.Red,
                 modifier = Modifier.padding(top = 8.dp)
             )
             Text(
                 text = "!",
-                fontFamily = RubikMoonrocks,
                 fontSize = 60.sp,
                 color = Color(0xFF0E7609)
             )
         }
 
-        // Card wraps the form fields and text elements
         Card(
             modifier = modifier
-                .fillMaxWidth() // Card fills the available width
-                .padding(10.dp), // Optional padding for the Card
-            shape = RoundedCornerShape(15.dp) // Optional rounded corners for the Card
+                .fillMaxWidth()
+                .padding(10.dp),
+            shape = RoundedCornerShape(15.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp) // Padding inside the Card for better layout
+                    .padding(16.dp)
             ) {
                 Text(
                     text = "REGISTRATION",
@@ -108,9 +93,9 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 TextField(
-                    value = pinChange.value,
+                    value = viewModel.pinChange,
                     onValueChange = { newValue ->
-                        pinChange.value = newValue.filter { it.isDigit() }.take(6)
+                        viewModel.updatePinChange(newValue.filter { it.isDigit() }.take(6))
                     },
                     label = { Text("Change Pin") },
                     modifier = Modifier
@@ -119,14 +104,13 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                     colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
                     shape = RoundedCornerShape(0.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    visualTransformation = PasswordVisualTransformation() // Add this line
+                    visualTransformation = PasswordVisualTransformation()
                 )
-                val pinValue = pinChange.value
                 Spacer(modifier = Modifier.height(16.dp))
                 TextField(
-                    value = confirm.value,
+                    value = viewModel.confirm,
                     onValueChange = { newValue ->
-                        confirm.value = newValue.filter {it.isDigit() }.take(6) // Changed to 6
+                        viewModel.updateConfirmPin(newValue.filter { it.isDigit() }.take(6))
                     },
                     label = { Text("Confirm Pin") },
                     modifier = Modifier
@@ -135,9 +119,8 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                     colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
                     shape = RoundedCornerShape(0.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    visualTransformation = PasswordVisualTransformation() // Added this line
+                    visualTransformation = PasswordVisualTransformation()
                 )
-                val confirmPinValue = confirm.value
                 Spacer(modifier = Modifier.height(200.dp))
                 Row {
                     Button(
@@ -158,12 +141,13 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                     Spacer(modifier = Modifier.width(200.dp))
                     Button(
                         onClick = {
-                            if (pinValue == confirmPinValue) {
-                                val hashedPin = hashPin(confirmPinValue) // Hash the PIN
-                                storeUserInRealtimeDb(idNumber, lastName, names, phoneNumber, email, gender, address, hashedPin) //Store the hashed PIN
+                            if (viewModel.pinChange == viewModel.confirm) {
+                                val hashedPin = hashPin(viewModel.confirm)
+                                storeUserInRealtimeDb(
+                                    idNumber, lastName, names, phoneNumber, email, gender, address, hashedPin
+                                )
                                 navController.navigate("homeScreen")
-                            }
-                            else {
+                            } else {
                                 scope.launch {
                                     snackbarHostState.showSnackbar(
                                         message = "PINs do not match",
@@ -185,27 +169,31 @@ fun CreatePinScreen(modifier: Modifier = Modifier, navController: NavController,
                 }
             }
         }
-        // Spacer for separation between Card and Image
 
-
-        // The Image is clearly outside the Card
         Image(
             painter = painterResource(id = R.drawable.people),
             contentDescription = "Voting Illustration",
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp) // Adjust height as needed
-                .padding(8.dp) // Optional padding around the image
+                .height(300.dp)
+                .padding(8.dp)
         )
     }
-    SnackbarHost(hostState = snackbarHostState)
 
+    SnackbarHost(hostState = snackbarHostState)
 }
 
-// Function to store user credentials in Realtime Database
-fun storeUserInRealtimeDb(userId: String, lastName : String, names : String, phoneNumber: String,
-                          email: String, gender : String, address : String, hashedPin : String ){
-    val UserData = hashMapOf(
+private fun hashPin(pin: String): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    val hash = digest.digest(pin.toByteArray())
+    return hash.joinToString("") { String.format("%02x", it) }
+}
+
+fun storeUserInRealtimeDb(
+    userId: String, lastName: String, names: String, phoneNumber: String,
+    email: String, gender: String, address: String, hashedPin: String
+) {
+    val userData = hashMapOf(
         "id" to userId,
         "last name" to lastName,
         "names" to names,
@@ -217,38 +205,11 @@ fun storeUserInRealtimeDb(userId: String, lastName : String, names : String, pho
     )
 
     realtimeDb.child("users").child(userId)
-        .setValue(UserData)
+        .setValue(userData)
         .addOnSuccessListener {
-            println("User stored in Realtime DB. Checking Firestore for validation...")
+            println("User stored in Realtime DB.")
         }
         .addOnFailureListener { e ->
             println("Error storing user in Realtime DB: $e")
         }
 }
-
-private fun hashPin(pin: String): String {
-    val digest = MessageDigest.getInstance("SHA-256")
-    val hash = digest.digest(pin.toByteArray())
-    return hash.joinToString("") { String.format("%02x", it) }
-}
-
-data class UserData(
-    val id: String,
-    val lastName: String,
-    val names: String,
-    val phoneNumber: String,
-    val email: String,
-    val gender: String,
-    val address: String,
-    val pin: String
-)
-
-/*private fun hashPin(pin: String): String {
-    val argon2 = Argon2Factory.create()
-    // Adjust parameters as necessary (iterations, memory, parallelism)
-    val hash = argon2.hash(10, 65536, 1, pin.toCharArray())
-    return hash
-
-=======
-}*/
-

@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
@@ -57,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freevote.R
+import com.example.freevote.viewmodel.MainViewModel
 
 
 val RubikMoonrocks = FontFamily(
@@ -65,24 +68,25 @@ val RubikMoonrocks = FontFamily(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navController: NavController) {
-    // State variables for input fields
-    var lName by remember { mutableStateOf("") }
-    var names by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
+fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavController, viewModel: MainViewModel, idNumber: String ) {
+    // Access values directly from ViewModel
 
-    var context = LocalContext.current
-
+    val lName = viewModel.lName
+    val names = viewModel.names
+    val phoneNumber = viewModel.phoneNumber
+    val email = viewModel.email
+    val gender = viewModel.gender
+    val address = viewModel.address
+    val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     Spacer(modifier = Modifier.height(30.dp))
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .background(color = Color.White),
+            .background(color = Color.White)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Text header
@@ -109,6 +113,8 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
             ),
             modifier = Modifier.padding(16.dp)
         )
+
+        // Registration card
         Card(
             modifier = modifier
                 .fillMaxWidth()
@@ -131,73 +137,120 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
                     modifier = Modifier.padding(16.dp)
                 )
 
-                // Input fields to change the arguments
+                // Input fields using ViewModel state
                 TextField(
                     value = lName,
-                    onValueChange = { lName = it },
+                    onValueChange = { viewModel.updateLastName(it) },
                     label = { Text("Last Name") },
-                    modifier = Modifier.fillMaxWidth().padding(0.dp).border(1.dp, Color.Black, RectangleShape),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp)
+                        .border(1.dp, Color.Black, RectangleShape),
                     shape = RectangleShape,
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911), focusedIndicatorColor = Transparent, unfocusedIndicatorColor = Transparent, disabledIndicatorColor = Transparent),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911),
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    ),
                 )
 
                 TextField(
                     value = names,
-                    onValueChange = { names = it },
+                    onValueChange = { viewModel.updateNames(it) },
                     label = { Text("Names") },
-                    modifier = Modifier.fillMaxWidth().padding(0.dp).border(1.dp, Color.Black, RectangleShape),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp)
+                        .border(1.dp, Color.Black, RectangleShape),
                     shape = RectangleShape,
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911), focusedIndicatorColor = Transparent, unfocusedIndicatorColor = Transparent, disabledIndicatorColor = Transparent)
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911),
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    )
                 )
 
                 TextField(
                     value = phoneNumber,
                     onValueChange = { newValue ->
-                        // Only update if newValue is a valid number and within the length limit
                         if (newValue.all { it.isDigit() } && newValue.length <= 10) {
-                            phoneNumber = newValue
+                            viewModel.updatePhoneNumber(newValue)
                         }
                     },
                     label = { Text("Phone Number") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth().padding(0.dp).border(1.dp, Color.Black, RectangleShape),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp)
+                        .border(1.dp, Color.Black, RectangleShape),
                     shape = RectangleShape,
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911), focusedIndicatorColor = Transparent, unfocusedIndicatorColor = Transparent, disabledIndicatorColor = Transparent)
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911),
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    )
                 )
 
                 TextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { viewModel.updateEmail(it) },
                     label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth().padding(0.dp).border(1.dp, Color.Black, RectangleShape),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp)
+                        .border(1.dp, Color.Black, RectangleShape),
                     shape = RectangleShape,
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911), focusedIndicatorColor = Transparent, unfocusedIndicatorColor = Transparent, disabledIndicatorColor = Transparent)
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911),
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    )
                 )
 
                 TextField(
                     value = gender,
-                    onValueChange = { gender = it },
+                    onValueChange = { viewModel.updateGender(it) },
                     label = { Text("Gender") },
-                    modifier = Modifier.fillMaxWidth().padding(0.dp).border(1.dp, Color.Black, RectangleShape),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp)
+                        .border(1.dp, Color.Black, RectangleShape),
                     shape = RectangleShape,
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911), focusedIndicatorColor = Transparent, unfocusedIndicatorColor = Transparent, disabledIndicatorColor = Transparent)
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911),
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    )
                 )
 
                 TextField(
                     value = address,
-                    onValueChange = { address = it },
+                    onValueChange = { viewModel.updateAddress(it) },
                     label = { Text("Address") },
-                    modifier = Modifier.fillMaxWidth().padding(0.dp).border(1.dp, Color.Black, RectangleShape),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp)
+                        .border(1.dp, Color.Black, RectangleShape),
                     shape = RectangleShape,
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911), focusedIndicatorColor = Transparent, unfocusedIndicatorColor = Transparent, disabledIndicatorColor = Transparent)
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911),
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
+
+                // Buttons for navigating
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Button(
-                        onClick = { /* Handle back action */
-                            navController.navigate("idNumberScreen")
-                        },
+                        onClick = { navController.navigate("idNumberScreen") },
                         modifier = Modifier.height(30.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
@@ -208,11 +261,17 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
                             tint = Color.White
                         )
                     }
+
                     Button(
-                        onClick = {
-                            validateUserDetailsInHomeAffairs(idNumber, lName, names, gender){isValid, userId, lastName, names, gender ->
+                        onClick = onClick@{
+                            if (idNumber.isBlank()) {
+                                Toast.makeText(context, "ID Number is required", Toast.LENGTH_SHORT).show()
+                                return@onClick
+                            }
+
+                            validateUserDetailsInHomeAffairs(idNumber, lName, names, gender) { isValid, userId, lastName, names, gender ->
                                 if (isValid) {
-                                    navController.navigate("createPinScreen/$userId/$lastName/$names/$phoneNumber/$email/$gender/$address")
+                                    navController.navigate("createPinScreen/$userId/$lastName/$names/${viewModel.phoneNumber}/${viewModel.email}/${viewModel.gender}/${viewModel.address}")
                                 } else {
                                     Toast.makeText(context, "Invalid details", Toast.LENGTH_SHORT).show()
                                 }
@@ -233,6 +292,8 @@ fun RegistrationScreen(modifier: Modifier = Modifier, idNumber: String, navContr
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Image illustration
         Image(
             painter = painterResource(id = R.drawable.people),
             contentDescription = "Voting Illustration",

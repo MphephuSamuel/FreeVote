@@ -3,17 +3,16 @@
 package com.example.myapplication
 
 
-import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
-import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -43,16 +41,14 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavHostController
+import com.example.freevote.viewmodel.MainViewModel
 import com.example.freevote.R
 import com.example.freevote.ui.screens.firestoreDb
 import com.google.firebase.Firebase
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
-import com.google.firebase.firestore.FirebaseFirestore
-
 
 
 val rubikMoonrocksFont = FontFamily(
@@ -64,15 +60,17 @@ val rubikMoonrocksFont = FontFamily(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IdNumberScreen(navController: NavHostController) {
+fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
 
-    var idNumber by remember { mutableStateOf("") }
+    var idNumber by remember { mutableStateOf(viewModel.idNumber ?: "") }
+    val scrollState = rememberScrollState()
     val context = LocalContext.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Text header
@@ -131,7 +129,10 @@ fun IdNumberScreen(navController: NavHostController) {
                 // OutlinedTextField with rounded shape, shadow, and background color
                 TextField(
                     value = idNumber,
-                    onValueChange = { idNumber = it },
+                    onValueChange = { newId ->
+                        idNumber = newId
+                        viewModel.updateIdNumber(newId)
+                    },
                     label = {
                         Text("ID NUMBER:", color = DarkGray)
                     },
@@ -149,12 +150,8 @@ fun IdNumberScreen(navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        if (idNumber == "") {
-                            Toast.makeText(
-                                context,
-                                "Please enter your ID number",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        if (idNumber.isBlank()) {
+                            Toast.makeText(context, "Please enter your ID number", Toast.LENGTH_SHORT).show()
                         } else {
                             validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
                                 if (isValidFirestore) {
@@ -164,14 +161,14 @@ fun IdNumberScreen(navController: NavHostController) {
                                             // ID is valid in both, proceed to pin screen
                                             navController.navigate("pinScreen/$id")
                                         } else {
-                                            // ID is only valid in Firestore, proceed to registration screen
-                                            navController.navigate("registrationScreen/$id")
+                                            // ID is only valid in Firestore, update the ViewModel and proceed to registration screen
+                                            viewModel.updateIdNumber(idNumber) // Update ViewModel here
+                                            navController.navigate("registrationScreen/$idNumber")
                                         }
                                     }
                                 } else {
                                     // ID is invalid in Firestore, show an error message
-                                    Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT)
-                                        .show()
+                                    Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
