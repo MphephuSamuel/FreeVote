@@ -1,4 +1,5 @@
 package com.example.freevote.ui.screens
+import com.google.firebase.database.ServerValue
 
 import android.annotation.SuppressLint
 import android.widget.Toast
@@ -461,6 +462,7 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                     nationalVote = selectedNational,
                     regionalVote = selectedRegional,
                     provincialVote = selectedProvincial,
+                    selectedProvince = selectedProvince, // Pass the selected province here
                     onVoteSuccess = {
                         // Handle successful vote storage (e.g., show a success message)
 
@@ -471,7 +473,6 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                     },
                     onVoteError = { exception ->
                         // Handle error (e.g., show an error message)
-
                     }
                 )
             },
@@ -542,29 +543,39 @@ data class Ballots(
     val provincial_legislature: Map<String, Province>? = null
 )
 
-
 fun castVote(
     nationalVote: PartyOption?,
     regionalVote: PartyOption?,
     provincialVote: PartyOption?,
+    selectedProvince: String?, // Add selected province to identify regional/provincial votes
     onVoteSuccess: () -> Unit, // Callback for success
     onVoteError: (Exception) -> Unit // Callback for error
 ) {
-    val voteId = UUID.randomUUID().toString()
+    val database = FirebaseDatabase.getInstance().reference
 
-    // Structure the vote
-    val voteData = mutableMapOf<String, Any?>().apply {
-        nationalVote?.let { put("nationalVote", it.abbreviation) } // Assuming abbreviation is used as identifier
-        regionalVote?.let { put("regionalVote", it.abbreviation) }
-        provincialVote?.let { put("provincialVote", it.abbreviation) }
-        put("timestamp", System.currentTimeMillis())
+    // Perform Firebase updates for each vote
+    val updates = mutableMapOf<String, Any>()
+
+    // Update national compensatory vote count
+    nationalVote?.let {
+        val nationalPath = "Votes/nationalCompensatoryVotes/${it.abbreviation}"
+        updates[nationalPath] = ServerValue.increment(1)
     }
 
-    // Store the vote anonymously in Firebase
-    FirebaseDatabase.getInstance().reference
-        .child("votes")
-        .child(voteId) // Using the generated voteId to ensure anonymity
-        .setValue(voteData)
+    // Update national regional vote count
+    if (selectedProvince != null && regionalVote != null) {
+        val regionalPath = "Votes/nationalRegionalVotes/${selectedProvince}Votes/${regionalVote.abbreviation}"
+        updates[regionalPath] = ServerValue.increment(1)
+    }
+
+    // Update provincial legislature vote count
+    if (selectedProvince != null && provincialVote != null) {
+        val provincialPath = "Votes/provincialLegislatureVotes/${selectedProvince}Votes/${provincialVote.abbreviation}"
+        updates[provincialPath] = ServerValue.increment(1)
+    }
+
+    // Apply all updates to the Firebase database
+    database.updateChildren(updates)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 onVoteSuccess() // Call success callback
@@ -573,4 +584,3 @@ fun castVote(
             }
         }
 }
-

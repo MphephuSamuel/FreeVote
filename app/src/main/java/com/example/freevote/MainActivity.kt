@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Navigation(viewModel: MainViewModel) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "idNumberScreen") {
+    NavHost(navController = navController, startDestination = "vote") {
         composable("idNumberScreen") { IdNumberScreen(navController, viewModel) }
         composable("homeScreen") { HomeScreen(Modifier, navController, viewModel) }
         composable("homenews") { MainScreen(navController, viewModel) }
