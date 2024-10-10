@@ -20,6 +20,7 @@ import com.example.freevote.ui.screens.VotePage
 import com.example.myapplication.IdNumberScreen
 import com.example.myproject1.ui.theme.FreeVoteTheme
 import androidx.activity.viewModels
+import com.example.freevote.ui.screens.ResultsScreen
 import com.example.freevote.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -40,11 +41,12 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Navigation(viewModel: MainViewModel) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "vote") {
+    NavHost(navController = navController, startDestination = "homenews") {
         composable("idNumberScreen") { IdNumberScreen(navController, viewModel) }
         composable("homeScreen") { HomeScreen(Modifier, navController, viewModel) }
         composable("homenews") { MainScreen(navController, viewModel) }
         composable("vote") { VotePage(Modifier, navController, viewModel) }
+        composable("results") { ResultsScreen(navController,viewModel) }
 
         composable(
             route = "registrationScreen/{ID_NUMBER}",

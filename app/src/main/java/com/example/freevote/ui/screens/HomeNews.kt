@@ -295,7 +295,7 @@ fun BottomNavigationBar(navControllerInside: NavHostController, navController: N
             icon = { Icon(Icons.Filled.DateRange, contentDescription = "Statistics") },
             label = { Text("Statistics") },
             selected = false,
-            onClick = { navControllerInside.navigate("statistics") }
+            onClick = { navController.navigate("results") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.Info, contentDescription = "About") },
