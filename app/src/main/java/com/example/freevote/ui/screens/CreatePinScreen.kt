@@ -146,7 +146,7 @@ fun CreatePinScreen(
                                 storeUserInRealtimeDb(
                                     idNumber, lastName, names, phoneNumber, email, gender, address, hashedPin
                                 )
-                                navController.navigate("homeScreen")
+                                navController.navigate("homenews")
                             } else {
                                 scope.launch {
                                     snackbarHostState.showSnackbar(

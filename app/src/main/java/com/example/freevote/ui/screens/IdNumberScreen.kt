@@ -3,6 +3,8 @@
 package com.example.myapplication
 
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -185,15 +187,29 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                         tint = White,
                         modifier = Modifier.size(150.dp) // Set the icon size
                     )
-
                 }
             }
-
-
-
-
         }
-        Spacer(modifier = Modifier.height(130.dp))
+
+        // New Button for navigating to the link
+        Button(
+            onClick = {
+                // Open the link
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://freevote-60cd6.web.app/"))
+                context.startActivity(intent)
+            },
+            modifier = Modifier
+                .padding(top = 8.dp) // Add a little spacing from the previous components
+                .height(57.dp) // Keep the height the same
+                .fillMaxWidth(), // Fill width
+            shape = RoundedCornerShape(0.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+        ) {
+            Text("Get Testing Details", color = Color.White) // Change text color if needed
+        }
+
+        Spacer(modifier = Modifier.height(65.dp))
+
         Image(
             painter = painterResource(id = R.drawable.people), // Ensure the drawable exists
             contentDescription = null,
@@ -204,6 +220,8 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
         )
     }
 }
+
+
 
 @Composable
 fun Header() {
