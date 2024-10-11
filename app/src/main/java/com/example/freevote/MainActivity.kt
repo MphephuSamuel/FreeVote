@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Navigation(viewModel: MainViewModel) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "homenews") {
+    NavHost(navController = navController, startDestination = "results") {
         composable("idNumberScreen") { IdNumberScreen(navController, viewModel) }
         composable("homeScreen") { HomeScreen(Modifier, navController, viewModel) }
         composable("homenews") { MainScreen(navController, viewModel) }
