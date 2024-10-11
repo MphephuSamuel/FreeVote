@@ -1,9 +1,11 @@
 package com.example.freevote
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
@@ -11,16 +13,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.freevote.ui.screens.CreatePinScreen
-import com.example.freevote.ui.screens.HomeScreen
-import com.example.freevote.ui.screens.MainScreen
-import com.example.freevote.ui.screens.PinScreen
-import com.example.freevote.ui.screens.RegistrationScreen
-import com.example.freevote.ui.screens.VotePage
+import com.example.freevote.ui.screens.*
 import com.example.myapplication.IdNumberScreen
 import com.example.myproject1.ui.theme.FreeVoteTheme
-import androidx.activity.viewModels
-import com.example.freevote.ui.screens.ResultsScreen
 import com.example.freevote.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -31,22 +26,50 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             FreeVoteTheme {
-                Navigation(viewModel)
-
+                val hasAcceptedTerms = checkIfTermsAccepted() // Check if user accepted the terms
+                Navigation(viewModel, hasAcceptedTerms)
             }
         }
+    }
+
+    // Check if the terms have been accepted using SharedPreferences
+    private fun checkIfTermsAccepted(): Boolean {
+        val sharedPreferences = getSharedPreferences("freevote_prefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean("terms_accepted", false)
+    }
+
+    // Save the terms acceptance state in SharedPreferences
+    fun saveTermsAccepted() {
+        val sharedPreferences = getSharedPreferences("freevote_prefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("terms_accepted", true)
+        editor.apply()
     }
 }
 
 @Composable
-fun Navigation(viewModel: MainViewModel) {
+fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "results") {
+    NavHost(
+        navController = navController,
+        startDestination = if (hasAcceptedTerms) "idNumberScreen" else "terms"
+    ) {
         composable("idNumberScreen") { IdNumberScreen(navController, viewModel) }
         composable("homeScreen") { HomeScreen(Modifier, navController, viewModel) }
         composable("homenews") { MainScreen(navController, viewModel) }
         composable("vote") { VotePage(Modifier, navController, viewModel) }
-        composable("results") { ResultsScreen(navController,viewModel) }
+        composable("results") { ResultsScreen(navController, viewModel) }
+        composable("settings") { SettingsScreen(Modifier, navController) }
+        composable("terms") {
+            TermsAndConditionsScreen(
+                navController = navController,
+                onAccept = {
+                    // Save acceptance and navigate
+                    (navController.context as MainActivity).saveTermsAccepted()
+                    navController.navigate("idNumberScreen")
+                }
+            )
+        }
 
         composable(
             route = "registrationScreen/{ID_NUMBER}",

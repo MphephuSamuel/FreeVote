@@ -40,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
@@ -70,16 +69,17 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
+// MainActivity
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController, viewModel: MainViewModel) {
-    val navControllerInside = rememberNavController()
+    val navController1 = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     ModalNavigationDrawer(
         drawerContent = {
             ModalDrawerSheet(
-
                 modifier = Modifier,
                 drawerContainerColor = Color.White
             ) {
@@ -88,7 +88,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
 
                 // Drawer menu items with click actions
                 Button(
-                    onClick = { },
+                    onClick = { /*TODO*/ },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -110,7 +110,9 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = {  },
+                    onClick = { /*TODO*/
+                    navController.navigate("settings")
+                              },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -132,7 +134,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = {  },
+                    onClick = { /*TODO*/ },
                     shape = RoundedCornerShape(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth()
@@ -154,7 +156,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = {  },
+                    onClick = { /*TODO*/ },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -176,7 +178,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = {  },
+                    onClick = { /*TODO*/ },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -198,7 +200,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = { },
+                    onClick = { /*TODO*/ },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -233,7 +235,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                                 withStyle(style = SpanStyle(color = Color(0xFF006400))) { append("!") }
                             },
                             fontSize = 48.sp,
-                            fontFamily = FontFamily(Font(R.font.rubik_moonrocks))
+                            fontFamily = FontFamily(Font(   R.font.rubix))
                         )
                     },
                     navigationIcon = {
@@ -243,9 +245,9 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                     }
                 )
             },
-            bottomBar = { BottomNavigationBar(navControllerInside = navControllerInside, navController=navController) },
+            bottomBar = { BottomNavigationBar(navController1=navController1,navController = navController) },
             content = { paddingValues ->
-                NavigationContent(navController = navControllerInside, paddingValues = paddingValues)
+                NavigationContent(navController1 = navController1, paddingValues = paddingValues)
             }
         )
     }
@@ -264,8 +266,8 @@ fun DrawerContent() {
 }
 
 @Composable
-fun NavigationContent(navController: NavHostController, paddingValues: PaddingValues) {
-    NavHost(navController = navController, startDestination = "home") {
+fun NavigationContent(navController1: NavHostController, paddingValues: PaddingValues) {
+    NavHost(navController = navController1, startDestination = "home") {
         composable("home") { HomeScreen(paddingValues) }
         composable("vote") { VoteScreen(paddingValues) }
         composable("statistics") { StatisticsScreen(paddingValues) }
@@ -274,7 +276,7 @@ fun NavigationContent(navController: NavHostController, paddingValues: PaddingVa
 }
 
 @Composable
-fun BottomNavigationBar(navControllerInside: NavHostController, navController: NavController) {
+fun BottomNavigationBar(navController1: NavHostController, navController: NavController) {
     NavigationBar(
         containerColor = Color.White,
         contentColor = Color.Black
@@ -283,7 +285,7 @@ fun BottomNavigationBar(navControllerInside: NavHostController, navController: N
             icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
             label = { Text("Home") },
             selected = false,
-            onClick = { navControllerInside.navigate("home")}
+            onClick = { navController1.navigate("home")}
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.ThumbUp, contentDescription = "Vote") },
@@ -292,8 +294,8 @@ fun BottomNavigationBar(navControllerInside: NavHostController, navController: N
             onClick = { navController.navigate("vote") }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.DateRange, contentDescription = "Statistics") },
-            label = { Text("Statistics") },
+            icon = { Icon(Icons.Filled.DateRange, contentDescription = "Results") },
+            label = { Text("Results") },
             selected = false,
             onClick = { navController.navigate("results") }
         )
@@ -301,7 +303,7 @@ fun BottomNavigationBar(navControllerInside: NavHostController, navController: N
             icon = { Icon(Icons.Filled.Info, contentDescription = "About") },
             label = { Text("About") },
             selected = false,
-            onClick = { navControllerInside.navigate("about") }
+            onClick = { navController1.navigate("about") }
         )
     }
 }
@@ -484,75 +486,74 @@ fun NewsHorizontalGallery(viewModel: NewsViewModel) {
 fun NewsItemCardFancy(article: Article, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .width(300.dp) // Larger width for a slideshow feel
+            .width(300.dp) // Width for a slideshow feel
             .height(300.dp) // Uniform height
             .clip(RoundedCornerShape(16.dp)) // Rounded corners
             .clickable { onClick() }
             .shadow(8.dp) // Shadow for depth effect
     ) {
-        // Background Image with Parallax Effect
+        // Background Image
         article.urlToImage?.let { url ->
             Image(
                 painter = rememberImagePainter(url), // Load image
                 contentDescription = null,
                 contentScale = ContentScale.Crop, // Crop the image
                 modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        // Parallax effect on scroll
-                        translationX = 0.8f * (300.dp.toPx() / 2f)
-                    }
+                    .fillMaxSize() // Fill the entire Box
             )
+        }
 
-            // Overlay for gradient effect
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f)),
-                            startY = 100f // Control the gradient overlay
-                        )
+        // Overlay for gradient effect
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f)),
+                        startY = 100f // Control the gradient overlay
                     )
-            )
+                )
+        )
 
-            // Text and source over the gradient
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(16.dp) // Padding within the box for text
-            ) {
-                Text(
-                    text = article.title,
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = article.title, // Assuming source is a string,
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+        // Text and source over the gradient
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp) // Padding within the box for text
+        ) {
+            Text(
+                text = article.title,
+                color = Color.White,
+                style = MaterialTheme.typography.headlineSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = article.title?.substringBefore(" - ") ?: "Unknown", // Assuming source is a string
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
+}
+
 
 
 // Preview function to see the UI in Android Studio's preview window
 
-    @Composable
-    fun PreviewMyApp() {
-        // Dummy data for preview
-        val dummyViewModel = NewsViewModel().apply {
-            newsLiveData.value = listOf(
-                Article("Preview Title 1", null, "Preview Description 1", "https://example.com"),
-                Article("Preview Title 2", null, "Preview Description 2", "https://example.com"),
-                Article("Preview Title 3", null, "Preview Description 3", "https://example.com"),
-                Article("Preview Title 4", null, "Preview Description 4", "https://example.com"),
-                Article("Preview Title 5", null, "Preview Description 5", "https://example.com")
-            )
-        }
-        NewsHorizontalGallery(viewModel = dummyViewModel)
-    }}
+@Composable
+fun PreviewMyApp() {
+    // Dummy data for preview
+    val dummyViewModel = NewsViewModel().apply {
+        newsLiveData.value = listOf(
+            Article("Preview Title 1", null, "Preview Description 1", "https://example.com"),
+            Article("Preview Title 2", null, "Preview Description 2", "https://example.com"),
+            Article("Preview Title 3", null, "Preview Description 3", "https://example.com"),
+            Article("Preview Title 4", null, "Preview Description 4", "https://example.com"),
+            Article("Preview Title 5", null, "Preview Description 5", "https://example.com")
+        )
+    }
+    NewsHorizontalGallery(viewModel = dummyViewModel)
+}
+

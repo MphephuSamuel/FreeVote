@@ -67,21 +67,21 @@ fun PinScreen(navController: NavController,
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "FREE",
-                fontFamily = RubikMoonrocks,
+                fontFamily = rubikMoonrocksFont,
                 fontSize = 60.sp,
                 color = Color.Black,
                 modifier = Modifier.padding(end = 4.dp)
             )
             Text(
                 text = "vote",
-                fontFamily = RubikMoonrocks,
+                fontFamily = rubikMoonrocksFont,
                 fontSize = 50.sp,
                 color = Color.Red,
                 modifier = Modifier.padding(top = 8.dp)
             )
             Text(
                 text = "!",
-                fontFamily = RubikMoonrocks,
+                fontFamily = rubikMoonrocksFont,
                 fontSize = 60.sp,
                 color = Color(0xFF0E7609)
             )
