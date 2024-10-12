@@ -95,7 +95,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
 
                 // Drawer menu items with click actions
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {  },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -210,9 +210,11 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                     onClick = {
                         // Sign out the user from Firebase
                         FirebaseAuth.getInstance().signOut()
+                        viewModel.updateIdNumber("")
 
                         // Navigate to the idNumberScreen
                         navController.navigate("idNumberScreen") {
+
                             // Optionally clear the back stack
                             popUpTo("idNumberScreen") { inclusive = true }
                         }
@@ -373,13 +375,16 @@ fun HomeScreen(paddingValues: PaddingValues) {
     LaunchedEffect(Unit) {
         viewModel.fetchNews()
     }
-
+    
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(paddingValues)
             .background(Color.White)
     ) {
+        Column {
+            Text(text = "Welcome ")
+        }
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally

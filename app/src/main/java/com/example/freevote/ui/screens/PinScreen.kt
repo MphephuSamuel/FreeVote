@@ -159,6 +159,7 @@ fun PinScreen(navController: NavController,
             Button(
                 onClick = {
                     // Reset PIN
+                    navController.navigate("forgotPin/$idNumber")
                     pin = TextFieldValue("")
                     viewModel.updatePinCode("") // Reset PIN in ViewModel as well
                     Toast.makeText(context, "PIN Reset", Toast.LENGTH_SHORT).show()

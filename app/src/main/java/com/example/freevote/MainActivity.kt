@@ -60,6 +60,20 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
         composable("vote") { VotePage(Modifier, navController, viewModel) }
         composable("results") { ResultsScreen(navController, viewModel) }
         composable("settings") { SettingsScreen(Modifier, navController) }
+        composable("changePin") { ChangePinScreen(Modifier, navController,viewModel) }
+        composable(
+            route = "forgotPin/{ID_NUMBER}",
+            arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: ""
+            ForgotPinScreen(
+                modifier = Modifier,
+                navController = navController,
+                idNumber = idNumber,
+                viewModel = viewModel // Pass ViewModel as the last argument
+
+            )
+        }
         composable("terms") {
             TermsAndConditionsScreen(
                 navController = navController,
