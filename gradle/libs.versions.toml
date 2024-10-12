@@ -1,6 +1,6 @@
 [versions]
 
-agp = "8.5.2"
+agp = "8.6.1"
 argon2Jvm = "2.11"
 jbcrypt = "0.5"
 jna = "5.8.0"

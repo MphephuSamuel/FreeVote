@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
 
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -80,9 +81,8 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .background(color = Color.White)
             .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Text header
         Text(
@@ -286,16 +286,15 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(65.dp))
 
-        // Image illustration
         Image(
-            painter = painterResource(id = R.drawable.people),
-            contentDescription = "Voting Illustration",
+            painter = painterResource(id = R.drawable.people), // Ensure the drawable exists
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
-                .padding(8.dp)
+                .height(100.dp)
         )
     }
 }

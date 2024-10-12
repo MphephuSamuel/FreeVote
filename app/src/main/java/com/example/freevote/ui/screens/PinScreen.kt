@@ -3,6 +3,7 @@ package com.example.freevote.ui.screens
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -33,11 +35,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -60,46 +68,50 @@ fun PinScreen(navController: NavController,
     var pin by remember { mutableStateOf(TextFieldValue(viewModel.pinCode ?: "")) }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // FREEvote! title
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "FREE",
-                fontFamily = rubikMoonrocksFont,
-                fontSize = 60.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(end = 4.dp)
-            )
-            Text(
-                text = "vote",
-                fontFamily = rubikMoonrocksFont,
-                fontSize = 50.sp,
-                color = Color.Red,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            Text(
-                text = "!",
-                fontFamily = rubikMoonrocksFont,
-                fontSize = 60.sp,
-                color = Color(0xFF0E7609)
-            )
-        }
+        Text(
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.Black)) {
+                    append("FREE")
+                }
+                withStyle(style = SpanStyle(color = Color.Red)) {
+                    append("vote")
+                }
+                withStyle(style = SpanStyle(color = Color(0xFF006400))) {
+                    append("!")
+                }
+            },
+            fontFamily = rubikMoonrocksFont,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = 48.sp,
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(4f, 4f),
+                    blurRadius = 8f
+                )
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(26.dp))
 
         // South African flag
         Image(
-            painter = painterResource(id = R.drawable.flag),
-            contentDescription = "South African Flag",
+            painter = painterResource(id = R.drawable.flag), // Make sure the drawable exists
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp)
-                .size(250.dp)
+                .height(250.dp)
         )
-        Spacer(modifier = Modifier.height(30.dp))
+
+        Spacer(modifier = Modifier.height(60.dp))
 
         Row {
             // PIN input field with yellow background
@@ -176,13 +188,15 @@ fun PinScreen(navController: NavController,
         }
 
         // Illustrations of people voting
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(65.dp))
+
         Image(
-            painter = painterResource(id = R.drawable.people),
-            contentDescription = "Voting Illustration",
+            painter = painterResource(id = R.drawable.people), // Ensure the drawable exists
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .fillMaxWidth()
-                .size(500.dp)
+                .height(100.dp)
         )
     }
 }
