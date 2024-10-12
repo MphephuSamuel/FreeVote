@@ -7,7 +7,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,6 +26,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -47,6 +51,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -286,10 +291,10 @@ fun DrawerContent() {
 @Composable
 fun NavigationContent(navController1: NavHostController, paddingValues: PaddingValues) {
     NavHost(navController = navController1, startDestination = "home") {
-        composable("home") { HomeScreen(paddingValues) }
+        composable("home") { HomeScreen(paddingValues)  }
         composable("vote") { VoteScreen(paddingValues) }
         composable("statistics") { StatisticsScreen(paddingValues) }
-        composable("about") { AboutScreen(paddingValues) }
+        composable("about") { FetchVotesFromFirebase(paddingValues) }
     }
 }
 
@@ -370,25 +375,22 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
 @Composable
 fun HomeScreen(paddingValues: PaddingValues) {
     // Merging NewsHorizontalGallery into HomeScreen
-    val viewModel: NewsViewModel = viewModel()
+    val newsViewModel: NewsViewModel = viewModel()
 
     LaunchedEffect(Unit) {
-        viewModel.fetchNews()
+        newsViewModel.fetchNews()
+        // Fetch votes if necessary
     }
     
-    Box(
+    // Use LazyVerticalGrid instead of LazyColumn
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(1), // Change the number of columns as needed
         modifier = Modifier
             .fillMaxWidth()
             .padding(paddingValues)
             .background(Color.White)
     ) {
-        Column {
-            Text(text = "Welcome ")
-        }
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        item {
             val customFont = FontFamily(Font(R.font.rubix))
             Text(
                 text = "News",
@@ -398,11 +400,45 @@ fun HomeScreen(paddingValues: PaddingValues) {
                 modifier = Modifier.padding(16.dp),
                 textAlign = TextAlign.Center
             )
+        }
+
+        item {
             Spacer(modifier = Modifier.height(4.dp))
-            NewsHorizontalGallery(viewModel = viewModel)
+        }
+
+        item {
+            NewsHorizontalGallery(viewModel = newsViewModel)
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(4.dp)) // Add space before the Statistics heading
+        }
+
+        item {
+            val customFont = FontFamily(Font(R.font.rubix))
+            Text(
+                text = "Statistics",
+                fontFamily = customFont,
+                color = Color.Red,
+                fontSize = 36.sp,
+                modifier = Modifier.padding(16.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(4.dp)) // Space before the slideshow
+        }
+
+        // Add the slideshow of vote results
+        item {
+            FetchVotesFromFirebase(paddingValues)
         }
     }
 }
+
+
+
 
 @Composable
 fun VoteScreen(paddingValues: PaddingValues) {
@@ -600,6 +636,194 @@ fun NewsItemCardFancy(article: Article, onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun VoteSlideshow(
+    nationalCompensatoryVotes: List<CandidateVotes>,
+    nationalRegionalVotes: Map<String, List<CandidateVotes>>,
+    provincialLegislatureVotes: Map<String, List<CandidateVotes>>
+) {
+    val sections = listOf(
+        "National Compensatory Votes" to nationalCompensatoryVotes.takeTop5(),
+        "National Regional Votes" to nationalRegionalVotes.flattenToTop5(),
+        "Provincial Legislature Votes" to provincialLegislatureVotes.flattenToTop5()
+    )
+
+    // State to keep track of current slide
+    var currentSectionIndex by remember { mutableStateOf(0) }
+
+    // Timer to automatically switch slides every few seconds
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(3000) // Change slide every 3 seconds
+            currentSectionIndex = (currentSectionIndex + 1) % sections.size
+        }
+    }
+
+    // Display current slide
+    val currentSection = sections[currentSectionIndex]
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = currentSection.first,
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(8.dp)
+        )
+
+        // Display progress bars for candidates
+        DisplayProgressBarsForCategory(currentSection.second)
+    }
+}
+@Composable
+fun DisplayCandidateVoteCard(candidateVotes: CandidateVotes) {
+    // Calculate total votes dynamically from the passed candidate votes
+    val totalVotes = candidateVotes.votes // Assuming you have the total votes count available
+
+    // Calculate vote percentage
+    val votePercentage = if (totalVotes > 0) candidateVotes.votes.toFloat() / totalVotes else 0f
+
+    // Card for candidate info and progress
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp) // Adjusted padding around each card
+            .shadow(4.dp, shape = RoundedCornerShape(12.dp)), // Subtle shadow and rounded corners
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp), // Add internal padding for better spacing
+            verticalArrangement = Arrangement.Center
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(), // Make the row take up the full width
+                horizontalArrangement = Arrangement.SpaceBetween // Space out the elements
+            ) {
+                // Candidate name
+                Text(
+                    text = candidateVotes.name,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),  // Bolder text for candidate name
+                    modifier = Modifier.padding(bottom = 8.dp) // Padding between name and progress bar
+                )
+
+                // Percentage Text
+                Text(
+                    text = "${(votePercentage * 100).toInt()}%", // Display percentage as text
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                    modifier = Modifier.padding(top = 8.dp) // Padding between progress bar and percentage
+                )
+            }
+
+            // Progress bar showing percentage of votes with custom styling
+            LinearProgressIndicator(
+                progress = votePercentage,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(12.dp) // Slightly increased height for better visibility
+                    .clip(RoundedCornerShape(12.dp)) // Add rounded corners
+                    .background(Color.LightGray.copy(alpha = 0.2f)), // Background color for unfilled part
+                color = when {
+                    votePercentage >= 0.75f -> Color(0xFF4CAF50) // Dark green for high percentages
+                    votePercentage >= 0.5f -> Color(0xFF8BC34A) // Light green for moderate percentages
+                    votePercentage >= 0.25f -> Color(0xFFFFC107) // Amber for mid-low percentages
+                    else -> Color(0xFFF44336) // Red for low percentages
+                }, // Dynamic color based on percentage
+                trackColor = Color.Gray.copy(alpha = 0.3f)  // Track color for the unfilled portion
+            )
+        }
+    }
+}
+@Composable
+fun FetchVotesFromFirebase(paddingValues: PaddingValues) {
+    // State to hold vote data
+    var nationalCompensatoryVotes by remember { mutableStateOf(listOf<CandidateVotes>()) }
+    var nationalRegionalVotes by remember { mutableStateOf(mapOf<String, List<CandidateVotes>>()) }
+    var provincialLegislatureVotes by remember { mutableStateOf(mapOf<String, List<CandidateVotes>>()) }
+
+    // Firebase listeners to fetch vote data
+    LaunchedEffect(Unit) {
+        val database = FirebaseDatabase.getInstance().reference.child("Votes")
+
+        database.child("nationalCompensatoryVotes").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val fetchedVotes = snapshot.children.map { dataSnapshot ->
+                    CandidateVotes(
+                        name = dataSnapshot.key.toString(),
+                        votes = dataSnapshot.value.toString().toInt()
+                    )
+                }
+                nationalCompensatoryVotes = fetchedVotes
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+
+        database.child("nationalRegionalVotes").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val regionVotes = snapshot.children.associate { regionSnapshot ->
+                    regionSnapshot.key.toString() to regionSnapshot.children.map { candidateSnapshot ->
+                        CandidateVotes(
+                            name = candidateSnapshot.key.toString(),
+                            votes = candidateSnapshot.value.toString().toInt()
+                        )
+                    }
+                }
+                nationalRegionalVotes = regionVotes
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+
+        database.child("provincialLegislatureVotes").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val legislatureVotes = snapshot.children.associate { regionSnapshot ->
+                    regionSnapshot.key.toString() to regionSnapshot.children.map { candidateSnapshot ->
+                        CandidateVotes(
+                            name = candidateSnapshot.key.toString(),
+                            votes = candidateSnapshot.value.toString().toInt()
+                        )
+                    }
+                }
+                provincialLegislatureVotes = legislatureVotes
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    // Display the slideshow of vote results with padding applied
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+    ) {
+        // Box with shadow and rounded corners for the slideshow
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp) // Padding around the Box
+                .shadow(4.dp, shape = RoundedCornerShape(12.dp)) // Shadow effect
+                .clip(RoundedCornerShape(12.dp)) // Rounded corners
+                .background(Color.White) // Background color
+        ) {
+            VoteSlideshow(nationalCompensatoryVotes, nationalRegionalVotes, provincialLegislatureVotes)
+        }
+    }
+}
+
+
+// Helper function to get top 5 votes
+fun List<CandidateVotes>.takeTop5(): List<CandidateVotes> {
+    return this.sortedByDescending { it.votes }.take(5)
+}
+
+// Helper function to flatten regional or provincial votes to top 5
+fun Map<String, List<CandidateVotes>>.flattenToTop5(): List<CandidateVotes> {
+    return this.values.flatten().sortedByDescending { it.votes }.take(5)
+}
 
 
 // Preview function to see the UI in Android Studio's preview window
