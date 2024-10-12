@@ -63,6 +63,7 @@ import androidx.navigation.NavController
 import com.example.freevote.R
 import com.example.freevote.viewmodel.MainViewModel
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -463,47 +464,68 @@ fun VoteDropdownMenu(selectedProvince: String?) {
 
         Button(
             onClick = {
+                val userId = FirebaseAuth.getInstance().currentUser?.uid // Get the current user's ID
+                if (userId != null) {
+                    val voteStatusRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("votes/$userId")
 
-                val votingManagementRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("voting_management")
+                    // Check if the user has already voted
+                    voteStatusRef.child("hasVoted").get().addOnSuccessListener { dataSnapshot ->
+                        val hasVoted = dataSnapshot.getValue(Boolean::class.java) ?: false
 
-                // Check the voting status before proceeding to cast the vote
-                votingManagementRef.child("isVotingAllowed").addListenerForSingleValueEvent(object :
-                    ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val isVotingAllowed = snapshot.getValue(Boolean::class.java) ?: false
-                        if (isVotingAllowed) {
-                            // Proceed to cast the vote
-                            castVote(
-                                nationalVote = selectedNational,
-                                regionalVote = selectedRegional,
-                                provincialVote = selectedProvincial,
-                                selectedProvince = selectedProvince, // Pass the selected province here
-                                onVoteSuccess = {
-                                    // Handle successful vote storage (e.g., show a success message)
-                                    Toast.makeText(context, "Vote cast successfully!", Toast.LENGTH_SHORT).show()
+                        if (!hasVoted) {
+                            val votingManagementRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("voting_management")
 
-                                    // Optionally clear selections
-                                    selectedNational = null
-                                    selectedRegional = null
-                                    selectedProvincial = null
-                                },
-                                onVoteError = { exception ->
-                                    // Handle error (e.g., show an error message)
-                                    Toast.makeText(context, "Error casting vote: ${exception.message}", Toast.LENGTH_SHORT).show()
+                            // Check the voting status before proceeding to cast the vote
+                            votingManagementRef.child("isVotingAllowed").addListenerForSingleValueEvent(object :
+                                ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    val isVotingAllowed = snapshot.getValue(Boolean::class.java) ?: false
+                                    if (isVotingAllowed) {
+                                        // Proceed to cast the vote
+                                        castVote(
+                                            nationalVote = selectedNational,
+                                            regionalVote = selectedRegional,
+                                            provincialVote = selectedProvincial,
+                                            selectedProvince = selectedProvince, // Pass the selected province here
+                                            onVoteSuccess = {
+                                                // Handle successful vote storage
+                                                Toast.makeText(context, "Vote cast successfully!", Toast.LENGTH_SHORT).show()
+
+                                                // Update the user's voting status to true
+                                                voteStatusRef.child("hasVoted").setValue(true)
+
+                                                // Optionally clear selections
+                                                selectedNational = null
+                                                selectedRegional = null
+                                                selectedProvincial = null
+                                            },
+                                            onVoteError = { exception ->
+                                                // Handle error
+                                                Toast.makeText(context, "Error casting vote: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        )
+                                    } else {
+                                        // Voting is not allowed
+                                        Toast.makeText(context, "Voting time has ended.", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
-                            )
-                        } else {
-                            // Voting is not allowed
-                            Toast.makeText(context, "Voting time has ended.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
 
-                    override fun onCancelled(error: DatabaseError) {
+                                override fun onCancelled(error: DatabaseError) {
+                                    Toast.makeText(context, "Error checking voting status", Toast.LENGTH_SHORT).show()
+                                }
+                            })
+                        } else {
+                            // User has already voted
+                            Toast.makeText(context, "You have already voted.", Toast.LENGTH_SHORT).show()
+                        }
+                    }.addOnFailureListener {
                         Toast.makeText(context, "Error checking voting status", Toast.LENGTH_SHORT).show()
                     }
-                })
-            }
-            ,
+                } else {
+                    // User is not authenticated
+                    Toast.makeText(context, "You must be logged in to vote.", Toast.LENGTH_SHORT).show()
+                }
+            },
             enabled = selectedNational != null || selectedRegional != null || selectedProvincial != null // Enable only if any option is selected
         ) {
             Text(text = "Vote")

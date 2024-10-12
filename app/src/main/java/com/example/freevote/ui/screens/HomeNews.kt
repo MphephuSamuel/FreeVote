@@ -64,6 +64,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.freevote.R
 import com.example.freevote.viewmodel.MainViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -206,7 +207,16 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = { navController.navigate("idNumberScreen") },
+                    onClick = {
+                        // Sign out the user from Firebase
+                        FirebaseAuth.getInstance().signOut()
+
+                        // Navigate to the idNumberScreen
+                        navController.navigate("idNumberScreen") {
+                            // Optionally clear the back stack
+                            popUpTo("idNumberScreen") { inclusive = true }
+                        }
+                    },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -299,25 +309,46 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
             label = { Text("Vote") },
             selected = false,
             onClick = {
-                // Get a reference to the voting_management node
-                val votingManagementRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("voting_management")
+                val userId = FirebaseAuth.getInstance().currentUser?.uid // Get the current user's ID
+                if (userId != null) {
+                    val voteStatusRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("votes/$userId")
 
-                votingManagementRef.child("isVotingAllowed").addListenerForSingleValueEvent(object :
-                        ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val isVotingAllowed = snapshot.getValue(Boolean::class.java) ?: false // Default to false if null
-                        if (isVotingAllowed) {
-                            navController.navigate("vote") // Navigate if voting is allowed
+                    // Check if the user has already voted
+                    voteStatusRef.child("hasVoted").get().addOnSuccessListener { dataSnapshot ->
+                        val hasVoted = dataSnapshot.getValue(Boolean::class.java) ?: false
+
+                        if (!hasVoted) {
+                            // User has not voted, proceed to check if voting is allowed
+                            val votingManagementRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("voting_management")
+
+                            votingManagementRef.child("isVotingAllowed").addListenerForSingleValueEvent(object :
+                                ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    val isVotingAllowed = snapshot.getValue(Boolean::class.java) ?: false // Default to false if null
+                                    if (isVotingAllowed) {
+                                        navController.navigate("vote") // Navigate if voting is allowed
+                                    } else {
+                                        Toast.makeText(context, "No voting allowed", Toast.LENGTH_SHORT).show() // Show toast if not allowed
+                                    }
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    Toast.makeText(context, "Error checking voting status", Toast.LENGTH_SHORT).show() // Handle error case
+                                }
+                            })
                         } else {
-                            Toast.makeText(context, "No voting allowed", Toast.LENGTH_SHORT).show() // Show toast if not allowed
+                            // User has already voted, show a message
+                            Toast.makeText(context, "You have already voted.", Toast.LENGTH_SHORT).show()
                         }
+                    }.addOnFailureListener {
+                        Toast.makeText(context, "Error checking voting status", Toast.LENGTH_SHORT).show()
                     }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(context, "Error checking voting status", Toast.LENGTH_SHORT).show() // Handle error case
-                    }
-                })
+                } else {
+                    // User is not authenticated
+                    Toast.makeText(context, "You must be logged in to vote.", Toast.LENGTH_SHORT).show()
+                }
             }
+
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.DateRange, contentDescription = "Results") },

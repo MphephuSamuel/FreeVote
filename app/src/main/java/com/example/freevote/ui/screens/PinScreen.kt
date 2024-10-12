@@ -1,5 +1,6 @@
 package com.example.freevote.ui.screens
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freevote.R
 import com.example.freevote.viewmodel.MainViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +107,7 @@ fun PinScreen(navController: NavController,
                 value = pin,
                 onValueChange = { newValue ->
                     // Filter out non-numeric characters and limit to 5 digits
-                    if (newValue.text.all { it.isDigit() } && newValue.text.length <= 5) {
+                    if (newValue.text.all { it.isDigit() } && newValue.text.length <= 6) {
                         pin = newValue
                         // Update ViewModel with the new PIN
                         viewModel.updatePinCode(newValue.text)
@@ -120,8 +123,12 @@ fun PinScreen(navController: NavController,
 
             Button(
                 onClick = {
-                    // Navigate to homeScreen
-                    navController.navigate("homenews")
+                    performLoginWithPin(
+                        idNumber = idNumber,
+                        pin = viewModel.pinCode,
+                        context = context,
+                        navController = navController
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,5 +183,39 @@ fun PinScreen(navController: NavController,
                 .fillMaxWidth()
                 .size(500.dp)
         )
+    }
+}
+
+fun performLoginWithPin(
+    idNumber: String,
+    pin: String, // This is the PIN (used as the password)
+    context: Context,
+    navController: NavController
+) {
+    val database = FirebaseDatabase.getInstance().getReference("users/$idNumber")
+
+    // Fetch the email associated with the idNumber
+    database.child("email").get().addOnSuccessListener { dataSnapshot ->
+        val email = dataSnapshot.getValue(String::class.java) ?: ""
+
+        if (email.isNotEmpty()) {
+            // Use Firebase Authentication to log in with the retrieved email and entered PIN
+            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pin)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        // Login successful, navigate to home screen
+                        navController.navigate("homenews")
+                    } else {
+                        // Login failed, show error message
+                        Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+        } else {
+            // Email not found for the given ID number
+            Toast.makeText(context, "No email found for this ID Number", Toast.LENGTH_SHORT).show()
+        }
+    }.addOnFailureListener {
+        // Error occurred while fetching email from Realtime Database
+        Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
     }
 }

@@ -114,7 +114,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
                 lastName = backStackEntry.arguments?.getString("LAST_NAME") ?: "",
                 names = backStackEntry.arguments?.getString("NAMES") ?: "",
                 phoneNumber = backStackEntry.arguments?.getString("PHONE_NUMBER") ?: "",
-                email = backStackEntry.arguments?.getString("EMAIL") ?: "",
+                theEmail = backStackEntry.arguments?.getString("EMAIL") ?: "",
                 gender = backStackEntry.arguments?.getString("GENDER") ?: "",
                 address = backStackEntry.arguments?.getString("ADDRESS") ?: "",
                 viewModel = viewModel // Pass ViewModel as the last argument

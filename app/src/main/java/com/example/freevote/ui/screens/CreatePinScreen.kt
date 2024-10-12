@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freevote.R
 import com.example.freevote.viewmodel.MainViewModel
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
 
@@ -37,7 +38,7 @@ fun CreatePinScreen(
     lastName: String,
     names: String,
     phoneNumber: String,
-    email: String,
+    theEmail: String,
     gender: String,
     address: String,
     viewModel: MainViewModel
@@ -45,7 +46,7 @@ fun CreatePinScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-
+    val email = theEmail.trim()
     Spacer(modifier = Modifier.height(30.dp))
     Column(
         modifier = Modifier
@@ -141,13 +142,43 @@ fun CreatePinScreen(
                     Spacer(modifier = Modifier.width(200.dp))
                     Button(
                         onClick = {
+                            // Check if the two PIN entries match
                             if (viewModel.pinChange == viewModel.confirm) {
-                                val hashedPin = hashPin(viewModel.confirm)
-                                storeUserInRealtimeDb(
-                                    idNumber, lastName, names, phoneNumber, email, gender, address, hashedPin
-                                )
-                                navController.navigate("homenews")
+
+                                // PIN validation (optional): Firebase requires the password/PIN to be at least 6 characters long
+                                if (viewModel.confirm.length < 6) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "PIN must be at least 6 digits",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                    return@Button
+                                }
+
+                                // Register the user in Firebase Authentication with email and PIN
+                                FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, viewModel.confirm)
+                                    .addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            // If successful, store the user in the Realtime Database
+                                            storeUserInRealtimeDb(
+                                                idNumber, lastName, names, phoneNumber, email, gender, address
+                                            )
+
+                                            // Navigate to the home screen
+                                            navController.navigate("homenews")
+                                        } else {
+                                            // If there was an error (e.g., email already exists or badly formatted), show the error
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = "Error: ${task.exception?.message}",
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        }
+                                    }
                             } else {
+                                // Show a snackbar if the PINs do not match
                                 scope.launch {
                                     snackbarHostState.showSnackbar(
                                         message = "PINs do not match",
@@ -191,7 +222,7 @@ private fun hashPin(pin: String): String {
 
 fun storeUserInRealtimeDb(
     userId: String, lastName: String, names: String, phoneNumber: String,
-    email: String, gender: String, address: String, hashedPin: String
+    email: String, gender: String, address: String
 ) {
     val userData = hashMapOf(
         "id" to userId,
@@ -201,7 +232,6 @@ fun storeUserInRealtimeDb(
         "email" to email,
         "gender" to gender,
         "address" to address,
-        "pin" to hashedPin
     )
 
     realtimeDb.child("users").child(userId)
