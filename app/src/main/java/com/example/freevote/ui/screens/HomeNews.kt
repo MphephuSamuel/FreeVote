@@ -43,8 +43,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
@@ -253,12 +255,26 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                     title = {
                         Text(
                             text = buildAnnotatedString {
-                                withStyle(style = SpanStyle(color = Color.Black)) { append("FREE") }
-                                withStyle(style = SpanStyle(color = Color.Red)) { append("vote") }
-                                withStyle(style = SpanStyle(color = Color(0xFF006400))) { append("!") }
+                                withStyle(style = SpanStyle(color = Color.Black)) {
+                                    append("FREE")
+                                }
+                                withStyle(style = SpanStyle(color = Color.Red)) {
+                                    append("vote")
+                                }
+                                withStyle(style = SpanStyle(color = Color(0xFF006400))) {
+                                    append("!")
+                                }
                             },
-                            fontSize = 48.sp,
-                            fontFamily = FontFamily(Font(   R.font.rubix))
+                            fontFamily = rubikMoonrocksFont,
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontSize = 48.sp,
+                                shadow = Shadow(
+                                    color = Color.Black,
+                                    offset = Offset(4f, 4f),
+                                    blurRadius = 8f
+                                )
+                            ),
+                            modifier = Modifier.padding(16.dp)
                         )
                     },
                     navigationIcon = {
