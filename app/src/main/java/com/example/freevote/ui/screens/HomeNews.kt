@@ -2,6 +2,7 @@ package com.example.freevote.ui.screens
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -63,6 +64,11 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.freevote.R
 import com.example.freevote.viewmodel.MainViewModel
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -200,7 +206,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = { navController.navigate("idNumberScreen") },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -277,6 +283,7 @@ fun NavigationContent(navController1: NavHostController, paddingValues: PaddingV
 
 @Composable
 fun BottomNavigationBar(navController1: NavHostController, navController: NavController) {
+    val context = LocalContext.current
     NavigationBar(
         containerColor = Color.White,
         contentColor = Color.Black
@@ -291,7 +298,26 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
             icon = { Icon(Icons.Filled.ThumbUp, contentDescription = "Vote") },
             label = { Text("Vote") },
             selected = false,
-            onClick = { navController.navigate("vote") }
+            onClick = {
+                // Get a reference to the voting_management node
+                val votingManagementRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("voting_management")
+
+                votingManagementRef.child("isVotingAllowed").addListenerForSingleValueEvent(object :
+                        ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val isVotingAllowed = snapshot.getValue(Boolean::class.java) ?: false // Default to false if null
+                        if (isVotingAllowed) {
+                            navController.navigate("vote") // Navigate if voting is allowed
+                        } else {
+                            Toast.makeText(context, "No voting allowed", Toast.LENGTH_SHORT).show() // Show toast if not allowed
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Toast.makeText(context, "Error checking voting status", Toast.LENGTH_SHORT).show() // Handle error case
+                    }
+                })
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.DateRange, contentDescription = "Results") },

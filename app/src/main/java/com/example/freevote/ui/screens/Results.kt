@@ -1,5 +1,6 @@
 package com.example.freevote.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -35,12 +36,67 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.rubikMoonrocksFont
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+
+// Define countdown as a top-level function
+fun countdown(
+    initialTime: Long,
+    onTimeChange: (Long) -> Unit,
+    onVotingEnd: () -> Unit
+) {
+    val scope = CoroutineScope(Dispatchers.Main) // Use Main dispatcher for UI updates
+    scope.launch {
+        var remainingTime = initialTime
+
+        while (remainingTime > 0) {
+            delay(1000) // Wait for 1 second
+            remainingTime -= 1000 // Decrease by 1 second
+            onTimeChange(remainingTime) // Update time left
+        }
+        onVotingEnd() // Mark voting as inactive
+    }
+}
 
 @Composable
 fun ResultsScreen(navController: NavController, viewModel: MainViewModel) {
     // Scrollable state
     val scrollState = rememberScrollState()
+
+    // State to hold the end time and countdown
+    var votingEndTime by remember { mutableStateOf(0L) }
+    var timeLeft by remember { mutableStateOf(0L) }
+    var isVotingActive by remember { mutableStateOf(true) }
+
+    // Fetch votingEndTime from Firebase
+    LaunchedEffect(Unit) {
+        val database = FirebaseDatabase.getInstance().reference.child("voting_management")
+        database.child("votingEndTime").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                votingEndTime = snapshot.getValue(Long::class.java) ?: 0L
+                // Calculate initial time left
+                timeLeft = votingEndTime - System.currentTimeMillis()-2000
+
+                // Start countdown if the voting is active
+                if (timeLeft > 0) {
+                    countdown(
+                        initialTime = timeLeft,
+                        onTimeChange = { updatedTime -> timeLeft = updatedTime }, // Update timeLeft
+                        onVotingEnd = { isVotingActive = false } // End voting
+                    )
+                } else {
+                    isVotingActive = false // Voting has already ended
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error
+            }
+        })
+    }
 
     Column(
         modifier = Modifier
@@ -74,9 +130,36 @@ fun ResultsScreen(navController: NavController, viewModel: MainViewModel) {
             modifier = Modifier.padding(16.dp)
         )
 
+        // Countdown Timer
+        if (isVotingActive) {
+            CountdownTimer(timeLeft) // Show countdown if voting is active
+        }
+
         FetchVotesFromFirebase() // This will also be included in the scrollable content
     }
 }
+
+@SuppressLint("DefaultLocale")
+@Composable
+fun CountdownTimer(timeLeft: Long) {
+    // Calculate hours, minutes, and seconds
+    val hours = (timeLeft / 1000 / 60 / 60) % 24
+    val minutes = (timeLeft / 1000 / 60) % 60
+    val seconds = (timeLeft / 1000) % 60
+
+    // Format the countdown text
+    val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+
+    Text(
+        text = timeText,
+        style = MaterialTheme.typography.headlineLarge.copy(
+            fontWeight = FontWeight.Bold,
+            color = Color.Red // Change color as needed
+        ),
+        modifier = Modifier.padding(16.dp) // Add some padding for better visual
+    )
+}
+
 
 //Text(text = "Results Screen")
 //Button(onClick = { /*TODO*/
@@ -302,3 +385,4 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
         }
     }
 }
+

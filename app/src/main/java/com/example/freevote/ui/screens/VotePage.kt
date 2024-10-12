@@ -63,7 +63,11 @@ import androidx.navigation.NavController
 import com.example.freevote.R
 import com.example.freevote.viewmodel.MainViewModel
 import com.google.firebase.Firebase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import java.util.UUID
 
@@ -292,6 +296,7 @@ fun VoteDropdownMenu(selectedProvince: String?) {
     var nationalOptions by remember { mutableStateOf<List<PartyOption>>(emptyList()) }
     var regionalOptions by remember { mutableStateOf<List<PartyOption>>(emptyList()) }
     var provincialOptions by remember { mutableStateOf<List<PartyOption>>(emptyList()) }
+    val context = LocalContext.current
 
     // Fetch national compensatory candidates from Firebase
     LaunchedEffect(Unit) {
@@ -458,24 +463,47 @@ fun VoteDropdownMenu(selectedProvince: String?) {
 
         Button(
             onClick = {
-                castVote(
-                    nationalVote = selectedNational,
-                    regionalVote = selectedRegional,
-                    provincialVote = selectedProvincial,
-                    selectedProvince = selectedProvince, // Pass the selected province here
-                    onVoteSuccess = {
-                        // Handle successful vote storage (e.g., show a success message)
 
-                        // Optionally clear selections
-                        selectedNational = null
-                        selectedRegional = null
-                        selectedProvincial = null
-                    },
-                    onVoteError = { exception ->
-                        // Handle error (e.g., show an error message)
+                val votingManagementRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("voting_management")
+
+                // Check the voting status before proceeding to cast the vote
+                votingManagementRef.child("isVotingAllowed").addListenerForSingleValueEvent(object :
+                    ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val isVotingAllowed = snapshot.getValue(Boolean::class.java) ?: false
+                        if (isVotingAllowed) {
+                            // Proceed to cast the vote
+                            castVote(
+                                nationalVote = selectedNational,
+                                regionalVote = selectedRegional,
+                                provincialVote = selectedProvincial,
+                                selectedProvince = selectedProvince, // Pass the selected province here
+                                onVoteSuccess = {
+                                    // Handle successful vote storage (e.g., show a success message)
+                                    Toast.makeText(context, "Vote cast successfully!", Toast.LENGTH_SHORT).show()
+
+                                    // Optionally clear selections
+                                    selectedNational = null
+                                    selectedRegional = null
+                                    selectedProvincial = null
+                                },
+                                onVoteError = { exception ->
+                                    // Handle error (e.g., show an error message)
+                                    Toast.makeText(context, "Error casting vote: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        } else {
+                            // Voting is not allowed
+                            Toast.makeText(context, "Voting time has ended.", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                )
-            },
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Toast.makeText(context, "Error checking voting status", Toast.LENGTH_SHORT).show()
+                    }
+                })
+            }
+            ,
             enabled = selectedNational != null || selectedRegional != null || selectedProvincial != null // Enable only if any option is selected
         ) {
             Text(text = "Vote")
