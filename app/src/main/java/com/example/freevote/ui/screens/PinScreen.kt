@@ -4,7 +4,9 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +39,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -113,48 +117,70 @@ fun PinScreen(navController: NavController,
 
         Spacer(modifier = Modifier.height(60.dp))
 
-        Row {
-            // PIN input field with yellow background
-            TextField(
-                value = pin,
-                onValueChange = { newValue ->
-                    // Filter out non-numeric characters and limit to 5 digits
-                    if (newValue.text.all { it.isDigit() } && newValue.text.length <= 6) {
-                        pin = newValue
-                        // Update ViewModel with the new PIN
-                        viewModel.updatePinCode(newValue.text)
-                    }
-                },
-                label = { Text("PIN") },
-                modifier = Modifier
-                    .height(57.dp),
-                colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
-                shape = RoundedCornerShape(0.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-            )
-
-            Button(
-                onClick = {
-                    performLoginWithPin(
-                        idNumber = idNumber,
-                        pin = viewModel.pinCode,
-                        context = context,
-                        navController = navController
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(57.dp),
-                shape = RoundedCornerShape(0.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = null,
-                    tint = Color.White
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = Color.Black, // Black border
+                    shape = RectangleShape // Rectangular shape for consistency
                 )
+                .padding(1.dp) // Padding between border and content
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // PIN input field with yellow background and rectangular shape
+                TextField(
+                    value = pin,
+                    onValueChange = { newValue ->
+                        // Filter out non-numeric characters and limit to 6 digits
+                        if (newValue.text.all { it.isDigit() } && newValue.text.length <= 6) {
+                            pin = newValue
+                            // Update ViewModel with the new PIN
+                            viewModel.updatePinCode(newValue.text)
+                        }
+                    },
+                    label = { Text("PIN", color = Color.DarkGray) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(57.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911), // Yellow background
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    ),
+                    shape = RectangleShape, // Rectangular shape to match other components
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                )
+
+                Button(
+                    onClick = {
+                        performLoginWithPin(
+                            idNumber = idNumber,
+                            pin = viewModel.pinCode,
+                            context = context,
+                            navController = navController
+                        )
+                    },
+                    modifier = Modifier
+                        .padding(start = 1.dp) // Add space between text field and button
+                        .size(57.dp), // Match the height of the TextField
+                    shape = RectangleShape, // Rectangular shape
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911)) // Yellow background
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(150.dp) // Set the icon size
+                    )
+                }
             }
         }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
