@@ -572,7 +572,6 @@ fun NewsHorizontalGallery(viewModel: NewsViewModel) {
         .shadow(8.dp, shape = RoundedCornerShape(12.dp))
         .background(Color.White)) {
 
-
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -580,8 +579,6 @@ fun NewsHorizontalGallery(viewModel: NewsViewModel) {
             contentPadding = PaddingValues(horizontal = 16.dp), // Padding for the edges
             horizontalArrangement = Arrangement.spacedBy(16.dp) // Spacing between items
         ) {
-
-
 
             items(articles) { article ->
                 NewsItemCardFancy(
