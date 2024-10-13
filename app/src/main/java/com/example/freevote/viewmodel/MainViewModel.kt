@@ -12,7 +12,7 @@ class MainViewModel : ViewModel() {
     var email by mutableStateOf("")
     var gender by mutableStateOf("")
     var address by mutableStateOf("")
-    var idNumber by mutableStateOf<String?>(null)
+    var idNumber by mutableStateOf("")
     var pinCode by mutableStateOf("")
     var pinChange by mutableStateOf("")
     var confirm by mutableStateOf("")
@@ -65,7 +65,7 @@ class MainViewModel : ViewModel() {
         email = ""
         gender = ""
         address = ""
-        idNumber = null // Set to null since it's of type String?
+        idNumber = "" // Set to null since it's of type String?
         pinCode = ""
         pinChange = ""
         confirm = ""

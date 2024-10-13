@@ -67,14 +67,14 @@ val RubikMoonrocks = FontFamily(
 fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavController, viewModel: MainViewModel, idNumber: String ) {
     // Access values directly from ViewModel
 
-    val lName = viewModel.lName
-    val names = viewModel.names
-    val phoneNumber = viewModel.phoneNumber
-    val email = viewModel.email
-    val gender = viewModel.gender
-    val address = viewModel.address
-    val scrollState = rememberScrollState()
-    val context = LocalContext.current
+    var lName = viewModel.lName
+    var names = viewModel.names
+    var phoneNumber = viewModel.phoneNumber
+    var email = viewModel.email
+    var gender = viewModel.gender
+    var address = viewModel.address
+    var scrollState = rememberScrollState()
+    var context = LocalContext.current
 
     Spacer(modifier = Modifier.height(30.dp))
     Column(
@@ -191,7 +191,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
 
                 TextField(
                     value = email,
-                    onValueChange = { viewModel.updateEmail(it) },
+                    onValueChange = { viewModel.updateEmail(it.trim()) },
                     label = { Text("Email") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -208,7 +208,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
 
                 TextField(
                     value = gender,
-                    onValueChange = { viewModel.updateGender(it) },
+                    onValueChange = { viewModel.updateGender(it.trim()) },
                     label = { Text("Gender") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -225,7 +225,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
 
                 TextField(
                     value = address,
-                    onValueChange = { viewModel.updateAddress(it) },
+                    onValueChange = { viewModel.updateAddress(it.trim()) },
                     label = { Text("Address") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -263,6 +263,12 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
                                 Toast.makeText(context, "ID Number is required", Toast.LENGTH_SHORT).show()
                                 return@onClick
                             }
+                            lName=viewModel.lName.trim()
+                            names=viewModel.names.trim()
+                            phoneNumber=viewModel.phoneNumber.trim()
+                            email=viewModel.email.trim()
+                            gender=viewModel.gender.trim()
+                            address=viewModel.address.trim()
 
                             validateUserDetailsInHomeAffairs(idNumber, lName, names, gender) { isValid, userId, lastName, names, gender ->
                                 if (isValid) {
