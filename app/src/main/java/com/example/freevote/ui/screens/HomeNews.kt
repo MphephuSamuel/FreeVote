@@ -421,7 +421,8 @@ fun HomeScreen(paddingValues: PaddingValues) {
             .fillMaxWidth()
             .verticalScroll(scrollState) // Makes the column scrollable
             .padding(paddingValues)
-            .background(Color.White)
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally // Centers the content horizontally
     ) {
         val customFont = FontFamily(Font(R.font.rubix))
 
