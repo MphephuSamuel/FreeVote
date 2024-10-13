@@ -5,14 +5,17 @@ import android.app.NotificationManager
 import android.content.Context.NOTIFICATION_SERVICE
 import android.os.Build
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -276,16 +279,33 @@ fun NotificationScreen(onBackClick: () -> Unit, modifier: Modifier) {
 
 @Composable
 fun NotificationItem(notification: Notification) {
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable { /* Handle notification click */ },
-        verticalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 8.dp)
+            .clickable { /* Handle notification click */ }
+            .background(Color(0xFFF0F9E8)), // Light green background
+        // Elevation for depth
+        shape = RoundedCornerShape(12.dp) // Rounded corners for a modern look
     ) {
-        Text(text = notification.title, fontWeight = FontWeight.Bold)
-        Text(text = notification.message, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
-    }
+        Column(
+            modifier = Modifier
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = notification.title,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF333333) // Dark text for better contrast
+            )
+            Text(
+                text = notification.message,
+                fontSize = 14.sp,
+                color = Color(0xFF555555), // Softer text color for the message
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            }
+        }
 }
 
 data class Notification(

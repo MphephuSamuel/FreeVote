@@ -50,7 +50,7 @@ fun DeleteAccount(
         TextField(
             value = password.value,
             onValueChange = { password.value = it },
-            label = { Text("Enter your password") },
+            label = { Text("Enter your Pin") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
@@ -71,11 +71,11 @@ fun DeleteAccount(
                             deleteUser(currentUser, navController, context, idNumber)
                         } else {
                             // Re-authentication failed
-                            Toast.makeText(context, "Re-authentication failed. Please check your password.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Re-authentication failed. Please check your pin.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
-                    Toast.makeText(context, "Please enter your password.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Please enter your pin.", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier.fillMaxWidth()
