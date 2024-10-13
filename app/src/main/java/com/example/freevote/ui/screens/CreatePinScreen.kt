@@ -139,13 +139,13 @@ fun CreatePinScreen(
                     visualTransformation = PasswordVisualTransformation()
                 )
                 Spacer(modifier = Modifier.height(200.dp))
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()){
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Button(
-                        onClick = {
-                            navController.navigate("registrationScreen")
-                        },
-                        modifier = Modifier
-                            .height(30.dp),
+                        onClick = { navController.navigate("registrationScreen") },
+                        modifier = Modifier.height(30.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
                     ) {
@@ -156,13 +156,12 @@ fun CreatePinScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(200.dp))
                     Button(
                         onClick = {
                             // Check if the two PIN entries match
                             if (viewModel.pinChange == viewModel.confirm) {
 
-                                // PIN validation (optional): Firebase requires the password/PIN to be at least 6 characters long
+                                // PIN validation: Firebase requires the password/PIN to be at least 6 characters long
                                 if (viewModel.confirm.length < 6) {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
@@ -204,8 +203,7 @@ fun CreatePinScreen(
                                 }
                             }
                         },
-                        modifier = Modifier
-                            .height(30.dp),
+                        modifier = Modifier.height(30.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
                     ) {
@@ -216,6 +214,7 @@ fun CreatePinScreen(
                         )
                     }
                 }
+
             }
         }
         Spacer(modifier = Modifier.height(65.dp))
