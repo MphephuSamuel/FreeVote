@@ -47,6 +47,7 @@ import com.example.freevote.viewmodel.MainViewModel
 import com.example.freevote.R
 import com.example.freevote.ui.screens.ConnectivityAlertDialog
 import com.example.freevote.ui.screens.firestoreDb
+import com.example.freevote.util.isInternetAvailable
 import com.google.firebase.Firebase
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -64,12 +65,13 @@ val rubikMoonrocksFont = FontFamily(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
-
+    // Display a dialog for connectivity issues if needed
     ConnectivityAlertDialog()
 
     var idNumber by remember { mutableStateOf(viewModel.idNumber ?: "") }
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+
 
     Column(
         modifier = Modifier
@@ -158,23 +160,28 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                         if (idNumber.isBlank()) {
                             Toast.makeText(context, "Please enter your ID number", Toast.LENGTH_SHORT).show()
                         } else {
-                            validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
-                                if (isValidFirestore) {
-                                    // ID is valid in Firestore, now check Realtime Database
-                                    validateUserInRealtimeDb(idNumber) { isValidRealtime ->
-                                        if (isValidRealtime) {
-                                            // ID is valid in both, proceed to pin screen
-                                            navController.navigate("pinScreen/$id")
-                                        } else {
-                                            // ID is only valid in Firestore, update the ViewModel and proceed to registration screen
-                                            viewModel.updateIdNumber(idNumber) // Update ViewModel here
-                                            navController.navigate("registrationScreen/$idNumber")
+                            // Check internet connection before proceeding
+                            if (isInternetAvailable(context)) {
+                                validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
+                                    if (isValidFirestore) {
+                                        // ID is valid in Firestore, now check Realtime Database
+                                        validateUserInRealtimeDb(idNumber) { isValidRealtime ->
+                                            if (isValidRealtime) {
+                                                // ID is valid in both, proceed to pin screen
+                                                navController.navigate("pinScreen/$id")
+                                            } else {
+                                                // ID is only valid in Firestore, update the ViewModel and proceed to registration screen
+                                                viewModel.updateIdNumber(idNumber) // Update ViewModel here
+                                                navController.navigate("registrationScreen/$idNumber")
+                                            }
                                         }
+                                    } else {
+                                        // ID is invalid in Firestore, show an error message
+                                        Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
                                     }
-                                } else {
-                                    // ID is invalid in Firestore, show an error message
-                                    Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
                                 }
+                            } else {
+                                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                             }
                         }
                     },

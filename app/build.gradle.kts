@@ -81,6 +81,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.0.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.4.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("com.itextpdf:itext7-core:7.2.3")
     implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     implementation("io.coil-kt:coil-compose:2.x.x") // Replace 2.x.x with the latest version

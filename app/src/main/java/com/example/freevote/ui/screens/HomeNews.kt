@@ -107,7 +107,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
 
                 // Drawer menu items with click actions
                 Button(
-                    onClick = {  },
+                    onClick = { navController.navigate("profile") },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
