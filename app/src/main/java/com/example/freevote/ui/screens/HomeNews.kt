@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -404,15 +405,17 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
 
 @Composable
 fun HomeScreen(paddingValues: PaddingValues) {
-    // Merging NewsHorizontalGallery into HomeScreen
+    // Initialize ViewModel
     val newsViewModel: NewsViewModel = viewModel()
 
+    // Fetch news on first composition
     LaunchedEffect(Unit) {
         newsViewModel.fetchNews()
         // Fetch votes if necessary
     }
+
     val scrollState = rememberScrollState()
-    // Use LazyVerticalGrid instead of LazyColumn
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -422,31 +425,43 @@ fun HomeScreen(paddingValues: PaddingValues) {
     ) {
         val customFont = FontFamily(Font(R.font.rubix))
 
+        // *** News Section ***
         Text(
             text = "News",
             fontFamily = customFont,
             color = Color.Red,
             fontSize = 36.sp,
-            textAlign = TextAlign.Center
         )
 
-        // News gallery content
-        NewsHorizontalGallery(viewModel = newsViewModel)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp) // Optional padding
+                .border(2.dp, Color.Gray) // Optional border
+                .background(Color.LightGray) // Optional background color
+        ) {
+            // Display News gallery content
+            NewsHorizontalGallery(viewModel = newsViewModel)
+        }
 
+
+        Spacer(modifier = Modifier.height(16.dp)) // Add spacing between sections
+
+        // *** Statistics Section ***
         Text(
             text = "Statistics",
             fontFamily = customFont,
             color = Color.Red,
             fontSize = 36.sp,
-            textAlign = TextAlign.Center,
             modifier = Modifier
-                .padding(bottom = 0.dp) // Set to 0 to check spacing
+                .padding(bottom = 0.dp)
         )
 
-        // Slideshow of vote results
+        // Display statistics content (e.g., vote results)
         FetchVotesFromFirebase(paddingValues)
     }
 }
+
 
 @Composable
 fun VoteScreen(paddingValues: PaddingValues) {
@@ -561,18 +576,16 @@ fun NewsHorizontalGallery(viewModel: NewsViewModel) {
     val context = LocalContext.current
     Card(modifier = Modifier
         .fillMaxWidth()
-        .shadow(8.dp)
-        .background(Color.White))
+        .clip(RoundedCornerShape(16.dp))
+        .background(Color.White)
+    )
     {
 
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp), // Adjust height for slideshow feel
-            contentPadding = PaddingValues(horizontal = 16.dp), // Padding for the edges
-            horizontalArrangement = Arrangement.spacedBy(16.dp) // Spacing between items
         ) {
-
             items(articles) { article ->
                 NewsItemCardFancy(
                     article = article,
@@ -584,7 +597,8 @@ fun NewsHorizontalGallery(viewModel: NewsViewModel) {
                 )
             }
         }
-    }}
+    }
+}
 
 @Composable
 fun NewsItemCardFancy(article: Article, onClick: () -> Unit) {
@@ -603,6 +617,7 @@ fun NewsItemCardFancy(article: Article, onClick: () -> Unit) {
                 contentScale = ContentScale.Crop, // Crop the image
                 modifier = Modifier
                     .fillMaxSize() // Fill the entire Box
+                    .border(4.dp, Color.White) // Add a border with thickness and color
             )
         }
 
