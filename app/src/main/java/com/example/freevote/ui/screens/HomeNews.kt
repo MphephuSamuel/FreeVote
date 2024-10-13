@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,6 +27,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 
 import androidx.compose.material3.MaterialTheme
@@ -111,8 +113,18 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Start // Align text to the start (left)
                     ) {
+
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = "Person Icon",
+                            tint = Color.Black,
+                            modifier = Modifier.size(18.dp) // Match the size to the font size (18.sp)
+                        )
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
                         Text(
-                            "Profile",
+                            viewModel.lName + " " + viewModel.names,
                             fontSize = 18.sp,
                             color = Color.Black,
                             modifier = Modifier.fillMaxWidth() // Ensures the text takes up full width

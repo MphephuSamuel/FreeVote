@@ -162,7 +162,8 @@ fun PinScreen(navController: NavController,
                             idNumber = idNumber,
                             pin = viewModel.pinCode,
                             context = context,
-                            navController = navController
+                            navController = navController,
+                            viewModel
                         )
                     },
                     modifier = Modifier
@@ -231,32 +232,53 @@ fun performLoginWithPin(
     idNumber: String,
     pin: String, // This is the PIN (used as the password)
     context: Context,
-    navController: NavController
+    navController: NavController,
+    viewModel: MainViewModel
 ) {
     val database = FirebaseDatabase.getInstance().getReference("users/$idNumber")
 
-    // Fetch the email associated with the idNumber
-    database.child("email").get().addOnSuccessListener { dataSnapshot ->
-        val email = dataSnapshot.getValue(String::class.java) ?: ""
+    // Fetch user data from Firebase Realtime Database
+    database.get().addOnSuccessListener { dataSnapshot ->
+        if (dataSnapshot.exists()) {
+            // Extract user details
+            val email = dataSnapshot.child("email").getValue(String::class.java) ?: ""
+            val lastName = dataSnapshot.child("last name").getValue(String::class.java) ?: ""
+            val names = dataSnapshot.child("names").getValue(String::class.java) ?: ""
+            val phoneNumber = dataSnapshot.child("phone number").getValue(String::class.java) ?: ""
+            val gender = dataSnapshot.child("gender").getValue(String::class.java) ?: ""
+            val address = dataSnapshot.child("address").getValue(String::class.java) ?: ""
 
-        if (email.isNotEmpty()) {
-            // Use Firebase Authentication to log in with the retrieved email and entered PIN
-            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pin)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // Login successful, navigate to home screen
-                        navController.navigate("homenews")
-                    } else {
-                        // Login failed, show error message
-                        Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+            if (email.isNotEmpty()) {
+                // Use Firebase Authentication to log in with the retrieved email and entered PIN
+                FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pin)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            // Login successful, update ViewModel and navigate to the home screen
+                            viewModel.updateLastName(lastName)
+                            viewModel.updateNames(names)
+                            viewModel.updatePhoneNumber(phoneNumber)
+                            viewModel.updateEmail(email)
+                            viewModel.updateGender(gender)
+                            viewModel.updateAddress(address)
+                            viewModel.updateIdNumber(idNumber)
+
+                            navController.navigate("homenews") // Navigate to the home screen
+                        } else {
+                            // Login failed, show error message
+                            Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                }
+            } else {
+                // Email not found for the given ID number
+                Toast.makeText(context, "No email found for this ID Number", Toast.LENGTH_SHORT).show()
+            }
         } else {
-            // Email not found for the given ID number
-            Toast.makeText(context, "No email found for this ID Number", Toast.LENGTH_SHORT).show()
+            // User not found in the database
+            Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show()
         }
     }.addOnFailureListener {
-        // Error occurred while fetching email from Realtime Database
+        // Error occurred while fetching data from Firebase
         Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
     }
 }
+
