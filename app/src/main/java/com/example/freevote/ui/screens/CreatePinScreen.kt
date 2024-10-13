@@ -45,17 +45,21 @@ fun CreatePinScreen(
     navController: NavController,
     idNumber: String,
     lastName: String,
-    names: String,
-    phoneNumber: String,
+    name: String,
+    number: String,
     theEmail: String,
-    gender: String,
-    address: String,
+    theGender: String,
+    theAddress: String,
     viewModel: MainViewModel
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val email = theEmail.trim()
+    val names = name.trim()
+    val phoneNumber =  number.trim()
+    val gender = theGender.trim()
+    val address = theAddress.trim()
     Spacer(modifier = Modifier.height(30.dp))
     Column(
         modifier = Modifier
