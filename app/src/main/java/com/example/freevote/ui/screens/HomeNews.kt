@@ -12,7 +12,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
@@ -409,64 +411,42 @@ fun HomeScreen(paddingValues: PaddingValues) {
         newsViewModel.fetchNews()
         // Fetch votes if necessary
     }
-    
+    val scrollState = rememberScrollState()
     // Use LazyVerticalGrid instead of LazyColumn
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(1), // Change the number of columns as needed
+    Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(scrollState) // Makes the column scrollable
             .padding(paddingValues)
             .background(Color.White)
     ) {
-        item {
-            val customFont = FontFamily(Font(R.font.rubix))
-            Text(
-                text = "News",
-                fontFamily = customFont,
-                color = Color.Red,
-                fontSize = 36.sp,
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center
-            )
-        }
+        val customFont = FontFamily(Font(R.font.rubix))
 
-        item {
-            Spacer(modifier = Modifier.height(4.dp))
-        }
+        Text(
+            text = "News",
+            fontFamily = customFont,
+            color = Color.Red,
+            fontSize = 36.sp,
+            textAlign = TextAlign.Center
+        )
 
-        item {
-            NewsHorizontalGallery(viewModel = newsViewModel)
-        }
+        // News gallery content
+        NewsHorizontalGallery(viewModel = newsViewModel)
 
-        item {
-            Spacer(modifier = Modifier.height(4.dp)) // Add space before the Statistics heading
-        }
+        Text(
+            text = "Statistics",
+            fontFamily = customFont,
+            color = Color.Red,
+            fontSize = 36.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(bottom = 0.dp) // Set to 0 to check spacing
+        )
 
-        item {
-            val customFont = FontFamily(Font(R.font.rubix))
-            Text(
-                text = "Statistics",
-                fontFamily = customFont,
-                color = Color.Red,
-                fontSize = 36.sp,
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(4.dp)) // Space before the slideshow
-        }
-
-        // Add the slideshow of vote results
-        item {
-            FetchVotesFromFirebase(paddingValues)
-        }
+        // Slideshow of vote results
+        FetchVotesFromFirebase(paddingValues)
     }
 }
-
-
-
 
 @Composable
 fun VoteScreen(paddingValues: PaddingValues) {
@@ -570,7 +550,7 @@ class NewsRepository {
 
     suspend fun fetchPoliticalNews() {
         val response = RetrofitInstance.api.getPoliticalNews(apiKey = "0895bd291a4c437b8bfbb6c145dabd65")
-        newsLiveData.postValue(response.articles.take(5)) // Restrict to 5 articles
+        newsLiveData.postValue(response.articles.take(10)) // Restrict to 5 articles
     }
 }
 
@@ -581,8 +561,9 @@ fun NewsHorizontalGallery(viewModel: NewsViewModel) {
     val context = LocalContext.current
     Card(modifier = Modifier
         .fillMaxWidth()
-        .shadow(8.dp, shape = RoundedCornerShape(12.dp))
-        .background(Color.White)) {
+        .shadow(8.dp)
+        .background(Color.White))
+    {
 
         LazyRow(
             modifier = Modifier
@@ -611,7 +592,6 @@ fun NewsItemCardFancy(article: Article, onClick: () -> Unit) {
         modifier = Modifier
             .width(300.dp) // Width for a slideshow feel
             .height(300.dp) // Uniform height
-            .clip(RoundedCornerShape(16.dp)) // Rounded corners
             .clickable { onClick() }
             .shadow(8.dp) // Shadow for depth effect
     ) {
@@ -653,7 +633,7 @@ fun NewsItemCardFancy(article: Article, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = article.title?.substringBefore(" - ") ?: "Unknown", // Assuming source is a string
+                text = article.title.substringBefore(" - ") ?: "Unknown", // Assuming source is a string
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -689,7 +669,7 @@ fun VoteSlideshow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(0.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -823,13 +803,12 @@ fun FetchVotesFromFirebase(paddingValues: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
     ) {
         // Box with shadow and rounded corners for the slideshow
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp) // Padding around the Box
+                .padding(horizontal = 16.dp, vertical = 0.dp) // Ensure no vertical padding
                 .shadow(4.dp, shape = RoundedCornerShape(12.dp)) // Shadow effect
                 .clip(RoundedCornerShape(12.dp)) // Rounded corners
                 .background(Color.White) // Background color
@@ -838,7 +817,6 @@ fun FetchVotesFromFirebase(paddingValues: PaddingValues) {
         }
     }
 }
-
 
 // Helper function to get top 5 votes
 fun List<CandidateVotes>.takeTop5(): List<CandidateVotes> {

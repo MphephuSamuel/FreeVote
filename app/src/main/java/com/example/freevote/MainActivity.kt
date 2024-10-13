@@ -52,7 +52,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = if (hasAcceptedTerms) "idNumberScreen" else "terms"
+        startDestination = if (hasAcceptedTerms) "homenews" else "terms"
     ) {
         composable("idNumberScreen") { IdNumberScreen(navController, viewModel) }
         composable("homeScreen") { HomeScreen(Modifier, navController, viewModel) }
