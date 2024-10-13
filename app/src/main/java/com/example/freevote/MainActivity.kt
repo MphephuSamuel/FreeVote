@@ -62,7 +62,9 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
         composable("vote") { VotePage(Modifier, navController, viewModel) }
         //composable("results") { ResultsScreen(navController, viewModel) }
         composable("settings") { SettingsScreen(Modifier, navController) }
-        composable("changePin") { ChangePinScreen(Modifier, navController,viewModel) }
+
+
+        composable("changePin") { ChangePinScreen(Modifier, navController, viewModel) }
         composable("profile") { ProfileScreen(viewModel, navController) }
         composable("webViewScreen/{url}") { backStackEntry ->
             val url = backStackEntry.arguments?.getString("url") ?: ""
@@ -82,6 +84,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
 
             )
         }
+
         composable("terms") {
             TermsAndConditionsScreen(
                 navController = navController,
@@ -142,5 +145,18 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
                 viewModel = viewModel // Pass ViewModel as the last argument
             )
         }
+        composable(
+            route = "DeleteAccount/{ID_NUMBER}",
+            arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: ""
+            DeleteAccount(
+
+                navController = navController,
+                idNumber = idNumber
+            )
+
+        }
+
     }
 }
