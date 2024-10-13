@@ -2,69 +2,45 @@ package com.example.freevote.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
-import com.example.freevote.viewmodel.MainViewModel
-import com.google.firebase.database.*
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.myapplication.rubikMoonrocksFont
+import com.google.firebase.database.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
-// Define countdown as a top-level function
 fun countdown(
     initialTime: Long,
     onTimeChange: (Long) -> Unit,
     onVotingEnd: () -> Unit
 ) {
-    val scope = CoroutineScope(Dispatchers.Main) // Use Main dispatcher for UI updates
+    val scope = CoroutineScope(Dispatchers.Main)
     scope.launch {
         var remainingTime = initialTime
-
         while (remainingTime > 0) {
-            delay(1000) // Wait for 1 second
-            remainingTime -= 1000 // Decrease by 1 second
-            onTimeChange(remainingTime) // Update time left
+            delay(1000)
+            remainingTime -= 1000
+            onTimeChange(remainingTime)
         }
-        onVotingEnd() // Mark voting as inactive
+        onVotingEnd()
     }
 }
 
 @Composable
 fun ResultsScreen(paddingValues: PaddingValues) {
-
-    // Scrollable state
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -73,36 +49,28 @@ fun ResultsScreen(paddingValues: PaddingValues) {
         verticalArrangement = Arrangement.Center
     ) {
         val scrollState = rememberScrollState()
-
-        // State to hold the end time and countdown
         var votingEndTime by remember { mutableStateOf(0L) }
         var timeLeft by remember { mutableStateOf(0L) }
         var isVotingActive by remember { mutableStateOf(true) }
 
-        // Fetch votingEndTime from Firebase
         LaunchedEffect(Unit) {
             val database = FirebaseDatabase.getInstance().reference.child("voting_management")
             database.child("votingEndTime").addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     votingEndTime = snapshot.getValue(Long::class.java) ?: 0L
-                    // Calculate initial time left
-                    timeLeft = votingEndTime - System.currentTimeMillis()-1000
-
-                    // Start countdown if the voting is active
+                    timeLeft = votingEndTime - System.currentTimeMillis() - 1000
                     if (timeLeft > 0) {
                         countdown(
                             initialTime = timeLeft,
-                            onTimeChange = { updatedTime -> timeLeft = updatedTime }, // Update timeLeft
-                            onVotingEnd = { isVotingActive = false } // End voting
+                            onTimeChange = { updatedTime -> timeLeft = updatedTime },
+                            onVotingEnd = { isVotingActive = false }
                         )
                     } else {
-                        isVotingActive = false // Voting has already ended
+                        isVotingActive = false
                     }
                 }
 
-                override fun onCancelled(error: DatabaseError) {
-                    // Handle error
-                }
+                override fun onCancelled(error: DatabaseError) {}
             })
         }
 
@@ -110,15 +78,14 @@ fun ResultsScreen(paddingValues: PaddingValues) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-                .verticalScroll(scrollState), // Enable vertical scrolling
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Countdown Timer
             if (isVotingActive) {
-                CountdownTimer(timeLeft) // Show countdown if voting is active
+                CountdownTimer(timeLeft)
             }
 
-            FetchVotesFromFirebase() // This will also be included in the scrollable content
+            FetchVotesFromFirebase()
         }
     }
 }
@@ -126,45 +93,33 @@ fun ResultsScreen(paddingValues: PaddingValues) {
 @SuppressLint("DefaultLocale")
 @Composable
 fun CountdownTimer(timeLeft: Long) {
-    // Calculate hours, minutes, and seconds
     val hours = (timeLeft / 1000 / 60 / 60) % 24
     val minutes = (timeLeft / 1000 / 60) % 60
     val seconds = (timeLeft / 1000) % 60
 
-    // Format the countdown text
     val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
 
     Text(
         text = timeText,
         style = MaterialTheme.typography.headlineLarge.copy(
             fontWeight = FontWeight.Bold,
-            color = Color.Red // Change color as needed
+            color = Color.Red
         ),
-        modifier = Modifier.padding(16.dp) // Add some padding for better visual
+        modifier = Modifier.padding(16.dp)
     )
 }
 
-
-//Text(text = "Results Screen")
-//Button(onClick = { /*TODO*/
-//  navController.navigate("homenews")}) {
-//Text(text = "go home")
-// }
-// Data class to store votes for a candidate
 data class CandidateVotes(val name: String, val votes: Int)
 
 @Composable
 fun FetchVotesFromFirebase() {
-    // State to hold vote data
     var nationalCompensatoryVotes by remember { mutableStateOf(listOf<CandidateVotes>()) }
     var nationalRegionalVotes by remember { mutableStateOf(mapOf<String, List<CandidateVotes>>()) }
     var provincialLegislatureVotes by remember { mutableStateOf(mapOf<String, List<CandidateVotes>>()) }
 
-    // Listen for real-time updates from Firebase
     LaunchedEffect(Unit) {
         val database = FirebaseDatabase.getInstance().reference.child("Votes")
 
-        // Real-time listener for National Compensatory Votes
         database.child("nationalCompensatoryVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val fetchedVotes = snapshot.children.map { dataSnapshot ->
@@ -176,12 +131,9 @@ fun FetchVotesFromFirebase() {
                 nationalCompensatoryVotes = fetchedVotes
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
+            override fun onCancelled(error: DatabaseError) {}
         })
 
-        // Real-time listener for National Regional Votes
         database.child("nationalRegionalVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val regionVotes = snapshot.children.associate { regionSnapshot ->
@@ -195,12 +147,9 @@ fun FetchVotesFromFirebase() {
                 nationalRegionalVotes = regionVotes
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
+            override fun onCancelled(error: DatabaseError) {}
         })
 
-        // Real-time listener for Provincial Legislature Votes
         database.child("provincialLegislatureVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val legislatureVotes = snapshot.children.associate { regionSnapshot ->
@@ -214,16 +163,12 @@ fun FetchVotesFromFirebase() {
                 provincialLegislatureVotes = legislatureVotes
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
+            override fun onCancelled(error: DatabaseError) {}
         })
     }
 
-    // Display the votes with real-time updates
     DisplayVoteResults(nationalCompensatoryVotes, nationalRegionalVotes, provincialLegislatureVotes)
 }
-
 
 @Composable
 fun DisplayVoteResults(
@@ -232,13 +177,12 @@ fun DisplayVoteResults(
     provincialLegislatureVotes: Map<String, List<CandidateVotes>>
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        // National Compensatory Votes Section
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF5F5F5)), // Light background for the card
+                .background(Color(0xFFF5F5F5)),
             shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Updated elevation
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -246,19 +190,19 @@ fun DisplayVoteResults(
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
+                // Rank and display candidates
                 DisplayProgressBarsForCategory(nationalCompensatoryVotes)
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp)) // Space between sections
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // National Regional Votes Section
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF5F5F5)), // Light background for the card
+                .background(Color(0xFFF5F5F5)),
             shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Updated elevation
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -272,20 +216,20 @@ fun DisplayVoteResults(
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(top = 8.dp)
                     )
+                    // Rank and display candidates
                     DisplayProgressBarsForCategory(candidates)
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp)) // Space between sections
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Provincial Legislature Votes Section
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF5F5F5)), // Light background for the card
+                .background(Color(0xFFF5F5F5)),
             shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Updated elevation
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -299,6 +243,7 @@ fun DisplayVoteResults(
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(top = 8.dp)
                     )
+                    // Rank and display candidates
                     DisplayProgressBarsForCategory(candidates)
                 }
             }
@@ -306,67 +251,57 @@ fun DisplayVoteResults(
     }
 }
 
-
 @Composable
 fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
+    // Calculate total votes
     val totalVotes = candidateVotes.sumOf { it.votes }
 
-    candidateVotes.forEach { candidate ->
+    // Create a list of candidates with their vote percentage and rank
+    val rankedCandidates = candidateVotes.map { candidate ->
         val votePercentage = if (totalVotes > 0) candidate.votes.toFloat() / totalVotes else 0f
+        candidate to (votePercentage * 100)
+    }.sortedByDescending { it.second } // Sort by vote percentage
 
-        // Card for candidate info and progress
+    // Display each ranked candidate
+    rankedCandidates.forEach { (candidate, percentage) ->
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp) // Adjusted padding around each card
-                .shadow(4.dp, shape = RoundedCornerShape(12.dp)), // Subtle shadow and rounded corners
-           // shape = RoundedCornerShape(12.dp) // Rounded corners for card
+                .padding(vertical = 4.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .shadow(2.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(2.dp) // Add internal padding for better spacing
-                    .background(Color(0xFFf5f5f5)), // Light background color for card
-                verticalArrangement = Arrangement.Center
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.Start
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(), // Make the row take up the full width
-                    horizontalArrangement = Arrangement.SpaceBetween // Space out the elements
+                    modifier = Modifier.fillMaxWidth(), // Ensure the row takes the full width
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Candidate name (no votes displayed)
-                    Text(
+                    BasicText(
                         text = candidate.name,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),  // Bolder text for candidate name
-                        modifier = Modifier.padding(bottom = 8.dp) // Padding between name and progress bar
+                        style = MaterialTheme.typography.bodyLarge
                     )
 
-                    // Percentage Text
-                    Text(
-                        text = "${(votePercentage * 100).toInt()}%", // Display percentage as text
-                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                        modifier = Modifier
-                            .padding(top = 8.dp) // Padding between progress bar and percentage
+                    BasicText(
+                        text = String.format("%.2f%%", percentage),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 8.dp) // Optional: Add space to the start of this text
                     )
                 }
-
-                // Progress bar showing percentage of votes with custom styling
                 LinearProgressIndicator(
-                    progress = votePercentage,
+                    progress = percentage / 100,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(12.dp) // Slightly increased height for better visibility
-                        .clip(RoundedCornerShape(12.dp)) // Add rounded corners
-                        .background(Color.LightGray.copy(alpha = 0.2f)), // Background color for unfilled part
-                    color = when {
-                        votePercentage >= 0.75f -> Color(0xFF4CAF50) // Dark green for high percentages
-                        votePercentage >= 0.5f -> Color(0xFF8BC34A) // Light green for moderate percentages
-                        votePercentage >= 0.25f -> Color(0xFFFFC107) // Amber for mid-low percentages
-                        else -> Color(0xFFF44336) // Red for low percentages
-                    }, // Dynamic color based on percentage
-                    trackColor = Color.Gray.copy(alpha = 0.3f)  // Track color for the unfilled portion
+                        .height(20.dp)
+                        .padding(top = 4.dp)
                 )
             }
         }
     }
 }
-
