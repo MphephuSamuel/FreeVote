@@ -45,6 +45,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavHostController
 import com.example.freevote.viewmodel.MainViewModel
 import com.example.freevote.R
+import com.example.freevote.ui.screens.ConnectivityAlertDialog
 import com.example.freevote.ui.screens.firestoreDb
 import com.google.firebase.Firebase
 import com.google.firebase.database.DataSnapshot
@@ -63,6 +64,8 @@ val rubikMoonrocksFont = FontFamily(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
+
+    ConnectivityAlertDialog()
 
     var idNumber by remember { mutableStateOf(viewModel.idNumber ?: "") }
     val scrollState = rememberScrollState()

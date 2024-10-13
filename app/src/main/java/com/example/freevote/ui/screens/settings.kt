@@ -1,6 +1,9 @@
 package com.example.freevote.ui.screens
 
-
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context.NOTIFICATION_SERVICE
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,15 +15,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavController
+import com.example.freevote.R
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
-import com.google.firebase.firestore.FirebaseFirestore
+
+
+
 
 @Composable
 fun SettingsScreen(modifier: Modifier, navController: NavController) {
-    // State variable to track which screen is displayed
     var currentScreen by remember { mutableStateOf("settings") }
 
     when (currentScreen) {
@@ -28,6 +42,8 @@ fun SettingsScreen(modifier: Modifier, navController: NavController) {
             onBackClick = { navController.navigate("homenews") },
             onAccountClick = { currentScreen = "account" },
             onHelpClick = { currentScreen = "help" },
+            onNotificationClick = { currentScreen = "notifications" }, // Added for notification screen
+            navController = navController,
             modifier = modifier
         )
         "account" -> AccountDetails(
@@ -43,11 +59,22 @@ fun SettingsScreen(modifier: Modifier, navController: NavController) {
             onBackClick = { currentScreen = "help" },
             modifier = modifier
         )
+        "notifications" -> NotificationScreen(
+            onBackClick = { currentScreen = "settings" },
+            modifier = modifier
+        ) // Added NotificationScreen
     }
 }
 
 @Composable
-fun SettingsList(onBackClick: () -> Unit,onAccountClick: () -> Unit, onHelpClick: () -> Unit, modifier: Modifier) {
+fun SettingsList(
+    onBackClick: () -> Unit,
+    onAccountClick: () -> Unit,
+    onHelpClick: () -> Unit,
+    onNotificationClick: () -> Unit, // Added for notification
+    navController: NavController,
+    modifier: Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -58,11 +85,12 @@ fun SettingsList(onBackClick: () -> Unit,onAccountClick: () -> Unit, onHelpClick
             Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
         }
         Text(text = "Settings", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+
         // Settings options
         SettingItem(icon = Icons.Default.AccountCircle, title = "Account", onClick = onAccountClick)
         SettingItem(icon = Icons.Default.Lock, title = "Privacy")
         SettingItem(icon = Icons.Default.Person, title = "Avatar")
-        SettingItem(icon = Icons.Default.Notifications, title = "Notifications")
+        SettingItem(icon = Icons.Default.Notifications, title = "Notifications", onClick = onNotificationClick) // Navigate to notifications
         SettingItem(icon = Icons.Default.Settings, title = "Storage and Data")
         SettingItem(icon = Icons.Default.Info, title = "Help", onClick = onHelpClick)
     }
@@ -118,7 +146,7 @@ fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
     var userQuery by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var notificationMessage by remember { mutableStateOf("") }
-    val firestore = FirebaseFirestore.getInstance() // Initialize Firestore instance
+    val database = FirebaseDatabase.getInstance() // Initialize Realtime Database instance
 
     Column(
         modifier = modifier
@@ -153,7 +181,7 @@ fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
                 .padding(bottom = 16.dp)
         )
 
-        // Button to send data to Firestore
+        // Button to send data to Realtime Database
         Button(
             onClick = {
                 Log.d("HelpCenterForm", "Send button clicked")
@@ -164,8 +192,8 @@ fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
                         "query" to userQuery
                     )
 
-                    firestore.collection("user_help_requests")
-                        .add(userHelpRequest)
+                    val helpRequestsRef = database.getReference("user_help_requests")
+                    helpRequestsRef.push().setValue(userHelpRequest)
                         .addOnSuccessListener {
                             notificationMessage = "Request sent successfully"
                             username = ""
@@ -185,7 +213,6 @@ fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
             Text("Send")
         }
 
-
         // Display notification message
         if (notificationMessage.isNotEmpty()) {
             Text(
@@ -198,6 +225,73 @@ fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
     }
 }
 
+@Composable
+fun NotificationScreen(onBackClick: () -> Unit, modifier: Modifier) {
+    val notifications = remember { mutableStateListOf<Notification>() }
+    val database: DatabaseReference = FirebaseDatabase.getInstance().getReference("notifications")
+
+    // Fetch notifications from Firebase
+    LaunchedEffect(Unit) {
+        database.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                notifications.clear()
+                for (data in snapshot.children) {
+                    val notification = data.getValue(Notification::class.java)
+                    if (notification != null) {
+                        notifications.add(notification)
+                    } else {
+                        Log.e("NotificationScreen", "Fetched notification is null")
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("NotificationScreen", "Error fetching notifications: ${error.message}")
+            }
+        })
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        IconButton(onClick = onBackClick) {
+            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+        }
+
+        Text(text = "Notifications", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+
+        // Display notifications
+        if (notifications.isEmpty()) {
+            Text(text = "No notifications available", fontSize = 16.sp)
+        } else {
+            notifications.forEach { notification ->
+                NotificationItem(notification)
+            }
+        }
+    }
+}
+
+@Composable
+fun NotificationItem(notification: Notification) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .clickable { /* Handle notification click */ },
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = notification.title, fontWeight = FontWeight.Bold)
+        Text(text = notification.message, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
+    }
+}
+
+data class Notification(
+    val title: String = "",
+    val message: String = ""
+)
 
 @Composable
 fun SettingItem(icon: ImageVector, title: String, onClick: (() -> Unit)? = null) {
@@ -205,11 +299,10 @@ fun SettingItem(icon: ImageVector, title: String, onClick: (() -> Unit)? = null)
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable(enabled = onClick != null) { onClick?.invoke() },
+            .clickable { onClick?.invoke() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = title, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(text = title, fontSize = 18.sp)
-    }
+        Icon(imageVector = icon, contentDescription = title, modifier = Modifier.padding(end = 16.dp))
+        Text(text = title, fontSize =18.sp)
+        }
 }

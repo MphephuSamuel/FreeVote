@@ -1,5 +1,6 @@
 package com.example.freevote
 
+import WebViewScreen
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
+
     val navController = rememberNavController()
     NavHost(
         navController = navController,
@@ -61,6 +63,12 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
         composable("results") { ResultsScreen(navController, viewModel) }
         composable("settings") { SettingsScreen(Modifier, navController) }
         composable("changePin") { ChangePinScreen(Modifier, navController,viewModel) }
+        composable("profile") { ProfileScreen(viewModel, navController) }
+        composable("webViewScreen/{url}") { backStackEntry ->
+            val url = backStackEntry.arguments?.getString("url") ?: ""
+            WebViewScreen(url = url)
+        }
+
         composable(
             route = "forgotPin/{ID_NUMBER}",
             arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })

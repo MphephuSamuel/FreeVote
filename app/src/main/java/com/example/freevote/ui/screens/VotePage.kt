@@ -448,7 +448,8 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                 DropdownMenuItem(
                     text = {
                         Text(option.name)
-                    },
+                    }
+                    ,
                     onClick = {
                         selectedProvincial = option // Set selected Provincial PartyOption
                         expandedProvincial = false // Close the dropdown

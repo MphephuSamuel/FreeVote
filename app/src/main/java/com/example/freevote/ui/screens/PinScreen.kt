@@ -66,6 +66,7 @@ fun PinScreen(navController: NavController,
               modifier: Modifier = Modifier // Default value for modifier
 )
 {
+    ConnectivityAlertDialog()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     // Instead of using 'remember', we use the ViewModel to store the PIN

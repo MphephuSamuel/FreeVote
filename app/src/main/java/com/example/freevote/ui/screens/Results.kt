@@ -78,7 +78,7 @@ fun ResultsScreen(navController: NavController, viewModel: MainViewModel) {
             override fun onDataChange(snapshot: DataSnapshot) {
                 votingEndTime = snapshot.getValue(Long::class.java) ?: 0L
                 // Calculate initial time left
-                timeLeft = votingEndTime - System.currentTimeMillis()-2000
+                timeLeft = votingEndTime - System.currentTimeMillis()-1000
 
                 // Start countdown if the voting is active
                 if (timeLeft > 0) {
