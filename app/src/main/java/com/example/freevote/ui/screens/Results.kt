@@ -62,80 +62,64 @@ fun countdown(
 }
 
 @Composable
-fun ResultsScreen(navController: NavController, viewModel: MainViewModel) {
+fun ResultsScreen(paddingValues: PaddingValues) {
+
     // Scrollable state
-    val scrollState = rememberScrollState()
-
-    // State to hold the end time and countdown
-    var votingEndTime by remember { mutableStateOf(0L) }
-    var timeLeft by remember { mutableStateOf(0L) }
-    var isVotingActive by remember { mutableStateOf(true) }
-
-    // Fetch votingEndTime from Firebase
-    LaunchedEffect(Unit) {
-        val database = FirebaseDatabase.getInstance().reference.child("voting_management")
-        database.child("votingEndTime").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                votingEndTime = snapshot.getValue(Long::class.java) ?: 0L
-                // Calculate initial time left
-                timeLeft = votingEndTime - System.currentTimeMillis()-1000
-
-                // Start countdown if the voting is active
-                if (timeLeft > 0) {
-                    countdown(
-                        initialTime = timeLeft,
-                        onTimeChange = { updatedTime -> timeLeft = updatedTime }, // Update timeLeft
-                        onVotingEnd = { isVotingActive = false } // End voting
-                    )
-                } else {
-                    isVotingActive = false // Voting has already ended
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
-        })
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(scrollState), // Enable vertical scrolling
+            .padding(paddingValues),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        // Text header
-        Text(
-            text = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color.Black)) {
-                    append("FREE")
-                }
-                withStyle(style = SpanStyle(color = Color.Red)) {
-                    append("vote")
-                }
-                withStyle(style = SpanStyle(color = Color(0xFF006400))) {
-                    append("!")
-                }
-            },
-            fontFamily = rubikMoonrocksFont,
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontSize = 48.sp,
-                shadow = Shadow(
-                    color = Color.Black,
-                    offset = Offset(4f, 4f),
-                    blurRadius = 8f
-                )
-            ),
-            modifier = Modifier.padding(16.dp)
-        )
+        val scrollState = rememberScrollState()
 
-        // Countdown Timer
-        if (isVotingActive) {
-            CountdownTimer(timeLeft) // Show countdown if voting is active
+        // State to hold the end time and countdown
+        var votingEndTime by remember { mutableStateOf(0L) }
+        var timeLeft by remember { mutableStateOf(0L) }
+        var isVotingActive by remember { mutableStateOf(true) }
+
+        // Fetch votingEndTime from Firebase
+        LaunchedEffect(Unit) {
+            val database = FirebaseDatabase.getInstance().reference.child("voting_management")
+            database.child("votingEndTime").addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    votingEndTime = snapshot.getValue(Long::class.java) ?: 0L
+                    // Calculate initial time left
+                    timeLeft = votingEndTime - System.currentTimeMillis()-1000
+
+                    // Start countdown if the voting is active
+                    if (timeLeft > 0) {
+                        countdown(
+                            initialTime = timeLeft,
+                            onTimeChange = { updatedTime -> timeLeft = updatedTime }, // Update timeLeft
+                            onVotingEnd = { isVotingActive = false } // End voting
+                        )
+                    } else {
+                        isVotingActive = false // Voting has already ended
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    // Handle error
+                }
+            })
         }
 
-        FetchVotesFromFirebase() // This will also be included in the scrollable content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(scrollState), // Enable vertical scrolling
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Countdown Timer
+            if (isVotingActive) {
+                CountdownTimer(timeLeft) // Show countdown if voting is active
+            }
+
+            FetchVotesFromFirebase() // This will also be included in the scrollable content
+        }
     }
 }
 

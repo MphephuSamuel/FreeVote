@@ -60,7 +60,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
         composable("homeScreen") { HomeScreen(Modifier, navController, viewModel) }
         composable("homenews") { MainScreen(navController, viewModel) }
         composable("vote") { VotePage(Modifier, navController, viewModel) }
-        composable("results") { ResultsScreen(navController, viewModel) }
+        //composable("results") { ResultsScreen(navController, viewModel) }
         composable("settings") { SettingsScreen(Modifier, navController) }
         composable("changePin") { ChangePinScreen(Modifier, navController,viewModel) }
         composable("profile") { ProfileScreen(viewModel, navController) }

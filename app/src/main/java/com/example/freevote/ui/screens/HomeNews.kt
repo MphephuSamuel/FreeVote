@@ -87,6 +87,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
+import com.example.freevote.ui.screens.*
 
 // MainActivity
 
@@ -324,7 +325,7 @@ fun NavigationContent(navController1: NavHostController, paddingValues: PaddingV
     NavHost(navController = navController1, startDestination = "home") {
         composable("home") { HomeScreen(paddingValues)  }
         composable("vote") { VoteScreen(paddingValues) }
-        composable("statistics") { StatisticsScreen(paddingValues) }
+        composable("results") { ResultsScreen(paddingValues) }
         composable("about") { FetchVotesFromFirebase(paddingValues) }
     }
 }
@@ -392,7 +393,7 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
             icon = { Icon(Icons.Filled.DateRange, contentDescription = "Results") },
             label = { Text("Results") },
             selected = false,
-            onClick = { navController.navigate("results") }
+            onClick = { navController1.navigate("results") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.Info, contentDescription = "About") },
