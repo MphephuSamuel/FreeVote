@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,6 +44,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -326,7 +328,10 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu")
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White
+                    )
                 )
             },
             bottomBar = { BottomNavigationBar(navController1=navController1,navController = navController) },
@@ -472,7 +477,14 @@ fun HomeScreen(paddingValues: PaddingValues) {
             text = "News",
             fontFamily = customFont,
             color = Color.Red,
-            fontSize = 36.sp,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = 36.sp,
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(4f, 4f),
+                    blurRadius = 8f
+                )
+            )
         )
 
         Box(
@@ -494,9 +506,14 @@ fun HomeScreen(paddingValues: PaddingValues) {
             text = "Statistics",
             fontFamily = customFont,
             color = Color.Red,
-            fontSize = 36.sp,
-            modifier = Modifier
-                .padding(bottom = 0.dp)
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = 36.sp,
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(4f, 4f),
+                    blurRadius = 8f
+                )
+            )
         )
 
         // Display statistics content (e.g., vote results)

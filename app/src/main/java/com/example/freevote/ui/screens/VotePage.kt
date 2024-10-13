@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,10 +57,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
 import com.example.freevote.R
 import com.example.freevote.viewmodel.MainViewModel
 import com.google.firebase.Firebase
@@ -216,7 +219,7 @@ fun LocationDropdown(provinces: List<String>, onProvinceSelected: (String) -> Un
                 .border(1.dp, Color.Gray)
                 .padding(8.dp)
         ) {
-            provinces.forEach { province ->
+            provinces.forEachIndexed {index, province ->
                 DropdownMenuItem(
                     text = {
                         Text(province)
@@ -227,55 +230,14 @@ fun LocationDropdown(provinces: List<String>, onProvinceSelected: (String) -> Un
                         onProvinceSelected(province) // Trigger the callback
                     }
                 )
-            }
-        }
-
-        // Confirm button for selected province
-        if (selectedProvince != null) {
-            Button(
-                onClick = { locationConfirmation = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-            ) {
-                Text("Confirm Province")
-            }
-        }
-
-        // Location confirmation dialog
-        if (locationConfirmation) {
-            AlertDialog(
-                onDismissRequest = { locationConfirmation = false },
-                title = { Text("Confirm Location") },
-                text = {
-                    Text("Province: ${selectedProvince ?: "None"}")
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            locationConfirmation = false
-                            // Optionally clear the selected province or keep it for further use
-                            // selectedProvince = null
-                        }
-                    ) {
-                        Text("Confirm")
-                    }
-                },
-                dismissButton = {
-                    Button(
-                        onClick = {
-                            locationConfirmation = false
-                            selectedProvince = null // Clear the selection if cancelled
-                        }
-                    ) {
-                        Text("Cancel")
-                    }
+                // Add a divider between items, but not after the last one
+                if (index < provinces.size - 1) {
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
                 }
-            )
+            }
         }
     }
 }
-
 
 @Composable
 fun VoteDropdownMenu(selectedProvince: String?) {
@@ -294,39 +256,48 @@ fun VoteDropdownMenu(selectedProvince: String?) {
     val database = Firebase.database.reference
 
     // State variables to hold the candidates fetched from Firebase
-    var nationalOptions by remember { mutableStateOf<List<PartyOption>>(emptyList()) }
-    var regionalOptions by remember { mutableStateOf<List<PartyOption>>(emptyList()) }
-    var provincialOptions by remember { mutableStateOf<List<PartyOption>>(emptyList()) }
+    var nationalOptions = remember { mutableStateListOf<PartyOption>() }
+    var regionalOptions = remember { mutableStateListOf<PartyOption>() }
+    var provincialOptions = remember { mutableStateListOf<PartyOption>() }
+
     val context = LocalContext.current
+
 
     // Fetch national compensatory candidates from Firebase
     LaunchedEffect(Unit) {
         database.child("ballots/national_compensatory/candidates")
             .get().addOnSuccessListener { dataSnapshot ->
-                nationalOptions = dataSnapshot.children.map { candidate ->
+                nationalOptions.clear() // Clear existing data
+                nationalOptions.addAll(dataSnapshot.children.map { candidate ->
                     PartyOption(
                         name = candidate.child("party_name").getValue(String::class.java) ?: "",
-                        leaderFaceRes = R.drawable.default_leader,
+                        leaderFaceUrl = candidate.child("party_leader_image_url").getValue(String::class.java) ?: "",
                         abbreviation = candidate.child("party_acronym").getValue(String::class.java) ?: "",
-                        logoRes = R.drawable.default_logo
+                        logoUrl = candidate.child("party_logo_url").getValue(String::class.java) ?: ""
                     )
-                }
+                })
+            }.addOnFailureListener { exception ->
+                // Handle possible errors
             }
     }
+
 
     // Fetch regional candidates based on selected province
     LaunchedEffect(selectedProvince) {
         if (selectedProvince != null) {
             database.child("ballots/national_regional/${selectedProvince}/candidates")
                 .get().addOnSuccessListener { dataSnapshot ->
-                    regionalOptions = dataSnapshot.children.map { candidate ->
+                    regionalOptions.clear() // Clear existing data
+                    regionalOptions.addAll(dataSnapshot.children.map { candidate ->
                         PartyOption(
                             name = candidate.child("party_name").getValue(String::class.java) ?: "",
-                            leaderFaceRes = R.drawable.default_leader,
+                            leaderFaceUrl = candidate.child("party_leader_image_url").getValue(String::class.java) ?: "",
                             abbreviation = candidate.child("party_acronym").getValue(String::class.java) ?: "",
-                            logoRes = R.drawable.default_logo
+                            logoUrl = candidate.child("party_logo_url").getValue(String::class.java) ?: ""
                         )
-                    }
+                    })
+                }.addOnFailureListener { exception ->
+                    // Handle possible errors
                 }
         }
     }
@@ -336,14 +307,17 @@ fun VoteDropdownMenu(selectedProvince: String?) {
         if (selectedProvince != null) {
             database.child("ballots/provincial_legislature/${selectedProvince}/candidates")
                 .get().addOnSuccessListener { dataSnapshot ->
-                    provincialOptions = dataSnapshot.children.map { candidate ->
+                    provincialOptions.clear() // Clear existing data
+                    provincialOptions.addAll(dataSnapshot.children.map { candidate ->
                         PartyOption(
                             name = candidate.child("party_name").getValue(String::class.java) ?: "",
-                            leaderFaceRes = R.drawable.default_leader,
+                            leaderFaceUrl = candidate.child("party_leader_image_url").getValue(String::class.java) ?: "",
                             abbreviation = candidate.child("party_acronym").getValue(String::class.java) ?: "",
-                            logoRes = R.drawable.default_logo
+                            logoUrl = candidate.child("party_logo_url").getValue(String::class.java) ?: ""
                         )
-                    }
+                    })
+                }.addOnFailureListener { exception ->
+                    // Handle possible errors
                 }
         }
     }
@@ -376,20 +350,66 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                 .border(1.dp, Color.Gray)
                 .padding(8.dp)
         ) {
-            nationalOptions.forEach { option ->
+            nationalOptions.forEachIndexed { index, option ->
                 DropdownMenuItem(
                     text = {
-                        Text(option.name)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Party logo
+                            Image(
+                                painter = rememberImagePainter(option.logoUrl),
+                                contentDescription = "Party Logo",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                            // Party details
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 8.dp)
+                            ) {
+                                Text(text = option.name, fontWeight = FontWeight.Bold)
+                                Text(text = option.abbreviation, color = Color.Gray)
+                            }
+                            // Party leader image
+                            Image(
+                                painter = rememberImagePainter(option.leaderFaceUrl),
+                                contentDescription = "Party Leader",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                            CrossCheckbox(
+                                checked = option.name == selectedNational?.name, // Compare option.name with selectedNational?.name
+                                onCheckedChange = { isChecked ->
+                                    if (isChecked) {
+                                        selectedNational = option // Assign the whole PartyOption instead of option.name
+                                        expandedNational = false
+                                        expandedNationalVote = true
+                                    }
+                                }
+                            )
+
+                        }
                     },
                     onClick = {
-                        selectedNational = option // Set selected National PartyOption
-                        expandedNationalVote = false // Close the dropdown
+                        selectedNational = option // Assign the PartyOption instead of just the name
+                        expandedNational = false
+                        expandedNationalVote = true
                     }
                 )
+                // Add a divider between items, but not after the last one
+                if (index < nationalOptions.size - 1) {
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+                }
             }
         }
 
-        // Regional Vote Dropdown
+        // Regional Vote Button
         Button(
             onClick = { expandedRegional = !expandedRegional },
             modifier = Modifier
@@ -401,27 +421,74 @@ fun VoteDropdownMenu(selectedProvince: String?) {
             Text(text = "Regional")
         }
 
+// Regional Vote Dropdown
         DropdownMenu(
             expanded = expandedRegional,
             onDismissRequest = { expandedRegional = false },
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
-                .border(1.dp, Color.Gray)
+                .background(Color(0xff04a0df))
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(Color(0xff04a0df), Color.White)
+                    )
+                )
                 .padding(8.dp)
         ) {
-            regionalOptions.forEach { option ->
+            regionalOptions.forEachIndexed { index, option ->
                 DropdownMenuItem(
                     text = {
-                        Text(option.name)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Party logo
+                            Image(
+                                painter = rememberImagePainter(option.logoUrl),
+                                contentDescription = "Party Logo",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                            // Party details
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 8.dp)
+                            ) {
+                                Text(text = option.name, fontWeight = FontWeight.Bold)
+                                Text(text = option.abbreviation, color = Color.Gray)
+                            }
+                            // Party leader image
+                            Image(
+                                painter = rememberImagePainter(option.leaderFaceUrl),
+                                contentDescription = "Party Leader",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                            CrossCheckbox(
+                                checked = option.name == selectedRegional?.name,
+                                onCheckedChange = { isChecked ->
+                                    if (isChecked) {
+                                        selectedRegional = option
+                                    }
+                                }
+                            )
+                        }
                     },
                     onClick = {
-                        selectedRegional = option // Set selected Regional PartyOption
-                        expandedRegional = false // Close the dropdown
+                        selectedRegional = option
                     }
                 )
+                // Add a divider between items, but not after the last one
+                if (index < regionalOptions.size - 1) {
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+                }
             }
         }
+
 
         // Provincial Vote Dropdown
         Button(
@@ -440,28 +507,150 @@ fun VoteDropdownMenu(selectedProvince: String?) {
             onDismissRequest = { expandedProvincial = false },
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
-                .border(1.dp, Color.Gray)
+                .background(Color(0xff04a0df))
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(Color(0xff04a0df), Color.White)
+                    )
+                )
                 .padding(8.dp)
         ) {
-            provincialOptions.forEach { option ->
+            provincialOptions.forEachIndexed { index, option ->
                 DropdownMenuItem(
                     text = {
-                        Text(option.name)
-                    }
-                    ,
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Party logo
+                            Image(
+                                painter = rememberImagePainter(option.logoUrl),
+                                contentDescription = "Party Logo",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                            // Party details
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 8.dp)
+                            ) {
+                                Text(text = option.name, fontWeight = FontWeight.Bold)
+                                Text(text = option.abbreviation, color = Color.Gray)
+                            }
+                            // Party leader image
+                            Image(
+                                painter = rememberImagePainter(option.leaderFaceUrl),
+                                contentDescription = "Party Leader",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                            CrossCheckbox(
+                                checked = option.name == selectedProvincial?.name,
+                                onCheckedChange = { isChecked ->
+                                    if (isChecked) {
+                                        selectedProvincial = option
+                                    }
+                                }
+                            )
+                        }
+                    },
                     onClick = {
-                        selectedProvincial = option // Set selected Provincial PartyOption
-                        expandedProvincial = false // Close the dropdown
+                        selectedProvincial = option
                     }
+                )
+                // Add a divider between items, but not after the last one
+                if (index < provincialOptions.size - 1) {
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+                }
+            }
+        }
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth() // Fills maximum width
+                .background(Color.LightGray) // Set the background color
+                .padding(8.dp) // Add padding
+        ) {
+            Row {
+                Text(
+                    text = "Selected National: ",
+                    color = Color.Gray, // Label color
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+                Text(
+                    text = selectedNational?.name ?: "",
+                    color = Color.Blue, // Candidate name color
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
             }
         }
 
-        // Display selected votes
-        Text(text = "Selected National: ${selectedNational?.name ?: "None"}")
-        Text(text = "Selected Regional: ${selectedRegional?.name ?: "None"}")
-        Text(text = "Selected Provincial: ${selectedProvincial?.name ?: "None"}")
+        Box(
+            modifier = Modifier
+                .fillMaxWidth() // Fills maximum width
+                .background(Color.LightGray) // Set the background color
+                .padding(8.dp) // Add padding
+        ) {
+            Row {
+                Text(
+                    text = "Selected Regional: ",
+                    color = Color.Gray, // Label color
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+                Text(
+                    text = selectedRegional?.name ?: "",
+                    color = Color.Green, // Candidate name color
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth() // Fills maximum width
+                .background(Color.LightGray) // Set the background color
+                .padding(8.dp) // Add padding
+        ) {
+            Row {
+                Text(
+                    text = "Selected Provincial: ",
+                    color = Color.Gray, // Label color
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+                Text(
+                    text = selectedProvincial?.name ?: "",
+                    color = Color.Red, // Candidate name color
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
+
 
         Button(
             onClick = {
@@ -562,36 +751,12 @@ fun CrossCheckbox(
     }
 }
 
+// Data class definition remains unchanged
 data class PartyOption(
     val name: String,                  // The name of the party
-    val leaderFaceRes: Int,           // Resource ID for the leader's face image
+    val leaderFaceUrl: String,        // URL for the leader's face image
     val abbreviation: String,          // The party's abbreviation
-    val logoRes: Int                   // Resource ID for the party logo image
-)
-
-data class Candidate(
-    val party_name: String? = null,
-    val party_acronym: String? = null,
-    val party_leader_image_url: String? = null,
-    val party_logo_url: String? = null,
-    val type: String? = null,  // "party" or "independent"
-    val name: String? = null,  // For independent candidates
-    val image_url: String? = null,  // For independent candidates
-    val createdAt: String? = null
-)
-
-data class Region(
-    val candidates: Map<String, Candidate>? = null
-)
-
-data class Province(
-    val candidates: Map<String, Candidate>? = null
-)
-
-data class Ballots(
-    val national_compensatory: Map<String, Candidate>? = null,
-    val national_regional: Map<String, Region>? = null,
-    val provincial_legislature: Map<String, Province>? = null
+    val logoUrl: String                // URL for the party logo image
 )
 
 fun castVote(

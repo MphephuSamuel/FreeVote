@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -179,45 +180,63 @@ fun DisplayVoteResults(
     Column(modifier = Modifier.padding(16.dp)) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFF5F5F5)),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent // Set the container background to be transparent
+            )
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "National Compensatory Votes",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                // Rank and display candidates
-                DisplayProgressBarsForCategory(nationalCompensatoryVotes)
+            Box(
+                modifier = Modifier
+                    .background(Color.Blue)
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Text(
+                        text = "National Compensatory Votes",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    // Rank and display candidates
+                    DisplayProgressBarsForCategory(nationalCompensatoryVotes)
+                }
             }
         }
+
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFF5F5F5)),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent // Set the container background to be transparent
+            )
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "National Regional Votes",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                nationalRegionalVotes.forEach { (region, candidates) ->
+            Box(
+                modifier = Modifier
+                    .background(Color.Blue)
+                    .padding(16.dp)
+            ) {
+                Column {
                     Text(
-                        text = "$region:",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(top = 8.dp)
+                        text = "National Regional Votes",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    // Rank and display candidates
-                    DisplayProgressBarsForCategory(candidates)
+                    nationalRegionalVotes.forEach { (region, candidates) ->
+                        Text(
+                            text = "$region:",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        // Rank and display candidates
+                        DisplayProgressBarsForCategory(candidates)
+                    }
                 }
             }
         }
@@ -226,28 +245,37 @@ fun DisplayVoteResults(
 
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFF5F5F5)),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent // Set the container background to be transparent
+            )
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Provincial Legislature Votes",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                provincialLegislatureVotes.forEach { (region, candidates) ->
+            Box(
+                modifier = Modifier
+                    .background(Color.Blue)
+                    .padding(16.dp)
+            ) {
+                Column {
                     Text(
-                        text = "$region:",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(top = 8.dp)
+                        text = "Provincial Legislature Votes",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    // Rank and display candidates
-                    DisplayProgressBarsForCategory(candidates)
+                    provincialLegislatureVotes.forEach { (region, candidates) ->
+                        Text(
+                            text = "$region:",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        // Rank and display candidates
+                        DisplayProgressBarsForCategory(candidates)
+                    }
                 }
             }
         }
+
     }
 }
 
