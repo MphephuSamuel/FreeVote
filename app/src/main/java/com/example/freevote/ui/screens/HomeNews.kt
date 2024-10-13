@@ -1,8 +1,10 @@
 package com.example.freevote.ui.screens
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -88,6 +90,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 import com.example.freevote.ui.screens.*
+import kotlinx.coroutines.delay
 
 // MainActivity
 
@@ -97,6 +100,32 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
     val navController1 = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    // Track back press state
+    var backPressedOnce by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+// Handle back button press
+    BackHandler {
+        if (backPressedOnce) {
+            // Reset ViewModel variables
+            viewModel.resetAllVariables()
+
+            // Exit the app
+            (context as Activity).finish()
+        } else {
+            // Show a message on first back press
+            backPressedOnce = true
+            Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
+
+            // Reset backPressedOnce after 2 seconds
+            coroutineScope.launch {
+                delay(2000L)
+                backPressedOnce = false
+            }
+        }
+    }
+
     ModalNavigationDrawer(
         drawerContent = {
             ModalDrawerSheet(
@@ -233,7 +262,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                     onClick = {
                         // Sign out the user from Firebase
                         FirebaseAuth.getInstance().signOut()
-                        viewModel.updateIdNumber("")
+                        viewModel.resetAllVariables()
 
                         // Navigate to the idNumberScreen
                         navController.navigate("idNumberScreen") {
@@ -341,7 +370,11 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
             icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
             label = { Text("Home") },
             selected = false,
-            onClick = { navController1.navigate("home")}
+            onClick = { navController1.navigate("home"){
+                popUpTo("home")// Clear back stack
+                launchSingleTop = true
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.ThumbUp, contentDescription = "Vote") },
@@ -393,13 +426,20 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
             icon = { Icon(Icons.Filled.DateRange, contentDescription = "Results") },
             label = { Text("Results") },
             selected = false,
-            onClick = { navController1.navigate("results") }
+            onClick = { navController1.navigate("results"){
+                popUpTo("home")// Clear back stack
+                launchSingleTop = true
+            } }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.Info, contentDescription = "About") },
             label = { Text("About") },
             selected = false,
-            onClick = { navController1.navigate("about") }
+            onClick = { navController1.navigate("about"){
+                popUpTo("home")// Clear back stack
+                launchSingleTop = true
+            } }
+
         )
     }
 }

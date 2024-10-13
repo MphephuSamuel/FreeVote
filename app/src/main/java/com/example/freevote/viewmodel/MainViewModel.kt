@@ -57,4 +57,17 @@ class MainViewModel : ViewModel() {
     fun updateConfirmPin(pin: String) {
         confirm = pin
     }
+
+    fun resetAllVariables() {
+        lName = ""
+        names = ""
+        phoneNumber = ""
+        email = ""
+        gender = ""
+        address = ""
+        idNumber = null // Set to null since it's of type String?
+        pinCode = ""
+        pinChange = ""
+        confirm = ""
+    }
 }

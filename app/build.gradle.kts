@@ -73,8 +73,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.database)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:<version>")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:<version>")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0") // Update to the latest version
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0") // Update to the latest version
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -91,5 +91,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
 }

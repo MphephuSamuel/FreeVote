@@ -158,7 +158,12 @@ fun PinScreen(navController: NavController,
                 )
 
                 Button(
-                    onClick = {
+                    onClick = onClick@{
+
+                        if (viewModel.pinCode.isEmpty()) {
+                            Toast.makeText(context, "Please enter your PIN", Toast.LENGTH_SHORT).show()
+                            return@onClick // Exit the onClick if PIN is    empty
+                        }
                         performLoginWithPin(
                             idNumber = idNumber,
                             pin = viewModel.pinCode,
@@ -263,7 +268,8 @@ fun performLoginWithPin(
                             viewModel.updateAddress(address)
                             viewModel.updateIdNumber(idNumber)
 
-                            navController.navigate("homenews") // Navigate to the home screen
+                            navController.navigate("homenews")
+                                // Navigate to the home screen
                         } else {
                             // Login failed, show error message
                             Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()

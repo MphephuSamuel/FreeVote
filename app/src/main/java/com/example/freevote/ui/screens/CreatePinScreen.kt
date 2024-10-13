@@ -144,7 +144,7 @@ fun CreatePinScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(
-                        onClick = { navController.navigate("registrationScreen") },
+                        onClick = { navController.navigate("registrationScreen/$idNumber") },
                         modifier = Modifier.height(30.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
