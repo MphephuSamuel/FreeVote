@@ -48,6 +48,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -152,9 +153,11 @@ fun PinScreen(navController: NavController,
                         focusedIndicatorColor = Transparent,
                         unfocusedIndicatorColor = Transparent,
                         disabledIndicatorColor = Transparent
+
                     ),
                     shape = RectangleShape, // Rectangular shape to match other components
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                    visualTransformation = PasswordVisualTransformation()
                 )
 
                 Button(

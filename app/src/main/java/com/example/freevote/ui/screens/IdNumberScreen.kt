@@ -2,7 +2,6 @@
 
 package com.example.myapplication
 
-
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -53,7 +52,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
-
+import java.text.SimpleDateFormat
+import java.util.*
 
 val rubikMoonrocksFont = FontFamily(
     Font(
@@ -71,7 +71,6 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
     var idNumber by remember { mutableStateOf(viewModel.idNumber ?: "") }
     val scrollState = rememberScrollState()
     val context = LocalContext.current
-
 
     Column(
         modifier = Modifier
@@ -97,7 +96,7 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontSize = 48.sp,
                 shadow = Shadow(
-                    color = Color.Black,
+                    color = Black,
                     offset = Offset(4f, 4f),
                     blurRadius = 8f
                 )
@@ -137,8 +136,11 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                 TextField(
                     value = idNumber,
                     onValueChange = { newId ->
-                        idNumber = newId
-                        viewModel.updateIdNumber(newId)
+                        // Allow only digits and limit to 13 characters
+                        if (newId.length <= 13 && newId.all { it.isDigit() }) {
+                            idNumber = newId
+                            viewModel.updateIdNumber(newId)
+                        }
                     },
                     label = {
                         Text("ID NUMBER:", color = DarkGray)
@@ -155,6 +157,7 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                     )
                 )
 
+
                 Button(
                     onClick = {
                         if (idNumber.isBlank()) {
@@ -164,16 +167,21 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                             if (isInternetAvailable(context)) {
                                 validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
                                     if (isValidFirestore) {
-                                        // ID is valid in Firestore, now check Realtime Database
-                                        validateUserInRealtimeDb(idNumber) { isValidRealtime ->
-                                            if (isValidRealtime) {
-                                                // ID is valid in both, proceed to pin screen
-                                                navController.navigate("pinScreen/$id")
-                                            } else {
-                                                // ID is only valid in Firestore, update the ViewModel and proceed to registration screen
-                                                viewModel.updateIdNumber(idNumber) // Update ViewModel here
-                                                navController.navigate("registrationScreen/$idNumber")
+                                        // Check if the user is 18 or older
+                                        if (isUser18OrOlder(idNumber)) {
+                                            // ID is valid in Firestore, now check Realtime Database
+                                            validateUserInRealtimeDb(idNumber) { isValidRealtime ->
+                                                if (isValidRealtime) {
+                                                    // ID is valid in both, proceed to pin screen
+                                                    navController.navigate("pinScreen/$id")
+                                                } else {
+                                                    // ID is only valid in Firestore, update the ViewModel and proceed to registration screen
+                                                    viewModel.updateIdNumber(idNumber) // Update ViewModel here
+                                                    navController.navigate("registrationScreen/$idNumber")
+                                                }
                                             }
+                                        } else {
+                                            Toast.makeText(context, "You must be 18 or older to proceed.", Toast.LENGTH_SHORT).show()
                                         }
                                     } else {
                                         // ID is invalid in Firestore, show an error message
@@ -231,8 +239,6 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
     }
 }
 
-
-
 @Composable
 fun Header() {
     Row(
@@ -264,37 +270,44 @@ fun Header() {
     }
 }
 
-fun validateUserInHomeAffairs(userId: String,callback: (Boolean, String) -> Unit) {
-    firestoreDb.collection("citizens").document(userId)
-        .get()
-        .addOnSuccessListener { document ->
-            if (document != null && document.exists()) {
-                callback(true, userId)
-            } else {
-                callback(false, userId)
-            }
+// Function to validate the user in Home Affairs
+fun validateUserInHomeAffairs(userId: String, callback: (Boolean, String) -> Unit) {
+    val homeAffairsRef = firestoreDb.collection("citizens").document(userId)
+    homeAffairsRef.get().addOnSuccessListener { documentSnapshot ->
+        if (documentSnapshot.exists()) {
+            val id = documentSnapshot.getString("id") ?: ""
+            callback(true, id) // User is valid, return id
+        } else {
+            callback(false, "") // User is not valid
         }
-        .addOnFailureListener { e ->
-            println("Error validating user in Firestore: $e")
-            callback(false, userId)
-        }
+    }.addOnFailureListener {
+        callback(false, "") // Handle error
+    }
 }
 
-fun validateUserInRealtimeDb(userId: String, callback: (Boolean) -> Unit) {
-    val usersRef = Firebase.database.reference.child("users").child(userId)
-
-    usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            if (snapshot.exists()) {
-                callback(true)
-            } else {
-                callback(false)
-            }
+// Function to validate user in Realtime Database
+fun validateUserInRealtimeDb(idNumber: String, callback: (Boolean) -> Unit) {
+    val databaseRef = Firebase.database.getReference("users/$idNumber")
+    databaseRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(dataSnapshot: DataSnapshot) {
+            callback(dataSnapshot.exists()) // Check if the user exists
         }
 
-        override fun onCancelled(error: DatabaseError) {
-            println("Error validating user in Realtime Database: ${error.toException()}")
-            callback(false)
+        override fun onCancelled(databaseError: DatabaseError) {
+            callback(false) // Handle error
         }
     })
+}
+
+// Function to check if the user is 18 or older based on ID number
+fun isUser18OrOlder(idNumber: String): Boolean {
+    // Assuming ID number is in the format YYMMDDXXXXXX
+    val birthDateString = idNumber.substring(0, 6)
+    val birthDate = SimpleDateFormat("yyMMdd", Locale.getDefault()).parse(birthDateString)
+
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.YEAR, -18) // Subtract 18 years
+
+    // Compare birth date with the current date minus 18 years
+    return birthDate?.let { it.before(calendar.time) } ?: false
 }
