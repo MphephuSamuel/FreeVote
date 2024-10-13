@@ -2,6 +2,7 @@ package com.example.freevote.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -11,12 +12,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -46,74 +55,111 @@ fun ForgotPinScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // FREEvote! title
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "FREE",
-                fontSize = 60.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(end = 4.dp)
-            )
-            Text(
-                text = "vote",
-                fontSize = 50.sp,
-                color = Color.Red,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            Text(
-                text = "!",
-                fontSize = 60.sp,
-                color = Color(0xFF0E7609)
-            )
-        }
+        Text(
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.Black)) {
+                    append("FREE")
+                }
+                withStyle(style = SpanStyle(color = Color.Red)) {
+                    append("vote")
+                }
+                withStyle(style = SpanStyle(color = Color(0xFF006400))) {
+                    append("!")
+                }
+            },
+            fontFamily = rubikMoonrocksFont,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = 48.sp,
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(4f, 4f),
+                    blurRadius = 8f
+                )
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(26.dp))
 
         // South African flag
         Image(
-            painter = painterResource(id = R.drawable.flag),
-            contentDescription = "South African Flag",
+            painter = painterResource(id = R.drawable.flag), // Make sure the drawable exists
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp)
-                .size(250.dp)
+                .height(250.dp)
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(60.dp))
 
         // Email Input Field
-        TextField(
-            value = email.value,
-            onValueChange = { email.value = it },
-            label = { Text("Email Address") },
-            modifier = Modifier.height(57.dp),
-            colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
-            shape = RoundedCornerShape(0.dp),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email),
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Send Re-authentication Email Button
-        Button(
-            onClick = {
-                // Send a password reset email for re-authentication
-                sendPasswordResetEmail(email.value.text, context)
-                navController.navigate("pinScreen/$idNumber")
-            },
-            modifier = Modifier.fillMaxWidth().height(57.dp),
-            shape = RoundedCornerShape(0.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
-        ) {
-            Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null, tint = Color.White)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Illustrations of people voting
-        Image(
-            painter = painterResource(id = R.drawable.people),
-            contentDescription = "Voting Illustration",
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .size(500.dp)
+                .border(
+                    width = 1.dp,
+                    color = Color.Black, // Black border
+                    shape = RectangleShape // Rectangular shape for consistency
+                )
+                .padding(1.dp) // Padding between border and content
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Email TextField with yellow background and rectangular shape
+                TextField(
+                    value = email.value,
+                    onValueChange = { email.value = it },
+                    label = { Text("Email Address", color = Color.DarkGray) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(57.dp), // Match the height of the TextField
+                    shape = RectangleShape, // Rectangular shape for consistency
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFFF1A911), // Yellow background
+                        focusedIndicatorColor = Transparent,
+                        unfocusedIndicatorColor = Transparent,
+                        disabledIndicatorColor = Transparent
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
+                )
+
+                Button(
+                    onClick = {
+                        // Send a password reset email for re-authentication
+                        sendPasswordResetEmail(email.value.text, context)
+                        navController.navigate("pinScreen/$idNumber")
+                    },
+                    modifier = Modifier
+                        .padding(start = 1.dp) // Space between TextField and Button
+                        .size(57.dp), // Match the height of the TextField
+                    shape = RectangleShape, // Rectangular shape
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911)) // Yellow background
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(150.dp) // Set the icon size
+                    )
+                }
+            }
+        }
+
+
+
+        // Illustrations of people voting
+        Spacer(modifier = Modifier.height(65.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.people), // Ensure the drawable exists
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
         )
     }
 }
