@@ -1,5 +1,6 @@
 package com.example.freevote.ui.screens
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freevote.R
 import com.example.freevote.util.PreferencesUtil
+import kotlinx.coroutines.delay
 
 val rubikMoonrocksFont = FontFamily(Font(R.font.rubik_moonrocks))
 
@@ -102,19 +104,35 @@ fun TermsAndConditionsScreen(navController: NavController, onAccept: () -> Unit)
             ) {
                 Text(text = "Accept", color = Color.White)
             }
+            // Add a variable to track clicks
+            var declineClickCount by remember { mutableStateOf(0) }
+
             Button(
                 onClick = {
-                    Toast.makeText(
-                        context,
-                        "You must accept the terms and conditions to proceed.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    declineClickCount++ // Increment the click count
+
+                    // Check the number of clicks
+                    if (declineClickCount == 1) {
+                        Toast.makeText(
+                            context,
+                            "Tap again to leave the app.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else if (declineClickCount == 2) {
+                        // Close the current activity and leave the app
+                        (context as? Activity)?.finishAffinity()
+                    }
+
+                    // Reset the counter after 2 seconds
+
                 },
                 modifier = Modifier.padding(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
-                Text(text = "Not Accept", color = Color.White)
+                Text(text = "Decline", color = Color.White)
             }
+
+
         }
     }
 }
