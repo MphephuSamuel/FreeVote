@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -147,6 +149,9 @@ fun HelpCenterForm(viewModel: MainViewModel, onBackClick: () -> Unit, modifier: 
     var notificationMessage by remember { mutableStateOf("") }
     val database = FirebaseDatabase.getInstance() // Initialize Realtime Database instance
 
+    val queries = remember { mutableStateListOf<Pair<String, String>>() } // List to store user queries
+    val responses = remember { mutableStateListOf<UserResponse>() } // List to store responses from Firebase
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -161,7 +166,7 @@ fun HelpCenterForm(viewModel: MainViewModel, onBackClick: () -> Unit, modifier: 
         Text(text = "Help Center", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
 
         // TextField for username input
-        idNumber= viewModel.idNumber
+        idNumber = viewModel.idNumber
 
         // TextField for user to type their question
         OutlinedTextField(
@@ -187,6 +192,7 @@ fun HelpCenterForm(viewModel: MainViewModel, onBackClick: () -> Unit, modifier: 
                     val helpRequestsRef = database.getReference("user_help_requests")
                     helpRequestsRef.push().setValue(userHelpRequest)
                         .addOnSuccessListener {
+                            queries.add(Pair(idNumber, userQuery)) // Add query to the list
                             notificationMessage = "Request sent successfully"
                             idNumber = ""
                             userQuery = "" // Clear the form
@@ -214,8 +220,115 @@ fun HelpCenterForm(viewModel: MainViewModel, onBackClick: () -> Unit, modifier: 
                 modifier = Modifier.padding(top = 16.dp)
             )
         }
+
+        // Display queries and responses
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(text = "Previous Queries", fontSize = 23.sp, modifier = Modifier.padding(bottom = 8.dp))
+
+        // Fetch responses from Firebase
+        LaunchedEffect(Unit) {
+            val responseDatabase: DatabaseReference = database.getReference("users_query_response")
+            responseDatabase.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    responses.clear()
+                    for (data in snapshot.children) {
+                        val response = data.getValue(UserResponse::class.java)
+                        if (response != null) {
+                            responses.add(response)
+                        } else {
+                            Log.e("HelpCenterForm", "Fetched response is null")
+                        }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("HelpCenterForm", "Error fetching responses: ${error.message}")
+                }
+            })
+        }
+
+        // Display responses
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(text = "Responses", fontSize = 20.sp, modifier = Modifier.padding(bottom = 8.dp))
+
+        LazyColumn {
+            items(responses) { response ->
+                ResponseItem(response)
+            }
+        }
     }
 }
+
+@Composable
+fun QueryItem(idNumber: String, query: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .background(Color(0xFFE0F7FA)), // Light cyan background for queries
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "ID Number: $idNumber",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF333333)
+            )
+            Text(
+                text = "Query: $query",
+                fontSize = 14.sp,
+                color = Color(0xFF555555),
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun ResponseItem(response: UserResponse) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .background(Color(0xFFE8F5E9)), // Light green background for responses
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Query: ${response.query}",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF333333)
+            )
+            Text(
+                text = "Response: ${response.response}",
+                fontSize = 14.sp,
+                color = Color(0xFF555555),
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            Text(
+                text = "Responded at: ${response.respondedAt}",
+                fontSize = 12.sp,
+                color = Color(0xFF888888),
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+    }
+}
+
+
+// Data class for UserResponse
+data class UserResponse(
+    val query: String = "",
+    val response: String = "",
+    val requestId: String = "",
+    val respondedAt: Long = 0L
+)
 
 @Composable
 fun NotificationScreen(onBackClick: () -> Unit, modifier: Modifier) {

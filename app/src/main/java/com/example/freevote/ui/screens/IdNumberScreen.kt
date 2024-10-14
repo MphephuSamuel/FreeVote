@@ -68,9 +68,10 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
     // Display a dialog for connectivity issues if needed
     ConnectivityAlertDialog()
 
-    var idNumber by remember { mutableStateOf(viewModel.idNumber ?: "") }
+    var idNumber by remember { mutableStateOf(viewModel.idNumber) }
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(false) } // Loading state
 
     Column(
         modifier = Modifier
@@ -117,97 +118,113 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
 
         Spacer(modifier = Modifier.height(60.dp))
 
-        // Row to place the TextField and Button horizontally
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = Color.Black, // Black color
-                    shape = RectangleShape // Rectangular shape
-                )
-                .padding(1.dp) // Padding between border and content
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // OutlinedTextField with rounded shape, shadow, and background color
-                TextField(
-                    value = idNumber,
-                    onValueChange = { newId ->
-                        // Allow only digits and limit to 13 characters
-                        if (newId.length <= 13 && newId.all { it.isDigit() }) {
-                            idNumber = newId
-                            viewModel.updateIdNumber(newId)
-                        }
-                    },
-                    label = {
-                        Text("ID NUMBER:", color = DarkGray)
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(57.dp),
-                    shape = RectangleShape, // All corners will be square
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color(0xFFF1A911),
-                        focusedIndicatorColor = Transparent,
-                        unfocusedIndicatorColor = Transparent,
-                        disabledIndicatorColor = Transparent
+        if (isLoading) {
+            // Show CircularProgressIndicator when loading
+            CircularProgressIndicator(
+                color = Color(0xFFF1A911),
+                modifier = Modifier
+                    .padding(top = 20.dp)
+                    .size(60.dp)
+            )
+        }
+        else{
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = Color.Black, // Black color
+                        shape = RectangleShape // Rectangular shape
                     )
-                )
+                    .padding(1.dp) // Padding between border and content
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // OutlinedTextField with rounded shape, shadow, and background color
+                    TextField(
+                        value = idNumber,
+                        onValueChange = { newId ->
+                            // Allow only digits and limit to 13 characters
+                            if (newId.length <= 13 && newId.all { it.isDigit() }) {
+                                idNumber = newId
+                                viewModel.updateIdNumber(newId)
+                            }
+                        },
+                        label = {
+                            Text("ID NUMBER:", color = DarkGray)
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(57.dp),
+                        shape = RectangleShape, // All corners will be square
+                        colors = TextFieldDefaults.textFieldColors(
+                            containerColor = Color(0xFFF1A911),
+                            focusedIndicatorColor = Transparent,
+                            unfocusedIndicatorColor = Transparent,
+                            disabledIndicatorColor = Transparent
+                        )
+                    )
 
 
-                Button(
-                    onClick = {
-                        if (idNumber.isBlank()) {
-                            Toast.makeText(context, "Please enter your ID number", Toast.LENGTH_SHORT).show()
-                        } else {
-                            // Check internet connection before proceeding
-                            if (isInternetAvailable(context)) {
-                                validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
-                                    if (isValidFirestore) {
-                                        // Check if the user is 18 or older
-                                        if (isUser18OrOlder(idNumber)) {
-                                            // ID is valid in Firestore, now check Realtime Database
-                                            validateUserInRealtimeDb(idNumber) { isValidRealtime ->
-                                                if (isValidRealtime) {
-                                                    // ID is valid in both, proceed to pin screen
-                                                    navController.navigate("pinScreen/$id")
-                                                } else {
-                                                    // ID is only valid in Firestore, update the ViewModel and proceed to registration screen
-                                                    viewModel.updateIdNumber(idNumber) // Update ViewModel here
-                                                    navController.navigate("registrationScreen/$idNumber")
+                    Button(
+                        onClick = {
+                            if (idNumber.isBlank()) {
+                                Toast.makeText(context, "Please enter your ID number", Toast.LENGTH_SHORT).show()
+                            } else {
+                                // Check internet connection before proceeding
+                                if (isInternetAvailable(context)) {
+                                    isLoading = true // Show loading indicator
+                                    validateUserInHomeAffairs(idNumber) { isValidFirestore, id ->
+                                        if (isValidFirestore) {
+                                            // Hide loading indicator
+                                            // Check if the user is 18 or older
+                                            if (isUser18OrOlder(idNumber)) {
+                                                // ID is valid in Firestore, now check Realtime Database
+                                                validateUserInRealtimeDb(idNumber) { isValidRealtime ->
+                                                    if (isValidRealtime) {
+                                                        // ID is valid in both, proceed to pin screen
+                                                        navController.navigate("pinScreen/$id")
+                                                    } else {
+                                                        // ID is only valid in Firestore, update the ViewModel and proceed to registration screen
+                                                        viewModel.updateIdNumber(idNumber) // Update ViewModel here
+                                                        navController.navigate("registrationScreen/$idNumber")
+                                                    }
+                                                    isLoading = false
                                                 }
+                                            } else {
+                                                Toast.makeText(context, "You must be 18 or older to proceed.", Toast.LENGTH_SHORT).show()
                                             }
                                         } else {
-                                            Toast.makeText(context, "You must be 18 or older to proceed.", Toast.LENGTH_SHORT).show()
+                                            // ID is invalid in Firestore, show an error message
+                                            Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
                                         }
-                                    } else {
-                                        // ID is invalid in Firestore, show an error message
-                                        Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
                                     }
+                                } else {
+                                    Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                                 }
-                            } else {
-                                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                             }
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(start = 1.dp) // Add space between text field and button
-                        .size(57.dp), // Adjust size to match TextField height
-                    shape = RoundedCornerShape(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
-                ) {
-                    Icon(
-                        Icons.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = White,
-                        modifier = Modifier.size(150.dp) // Set the icon size
-                    )
+                        },
+                        modifier = Modifier
+                            .padding(start = 1.dp) // Add space between text field and button
+                            .size(57.dp), // Adjust size to match TextField height
+                        shape = RoundedCornerShape(0.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+                    ) {
+                        Icon(
+                            Icons.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = White,
+                            modifier = Modifier.size(150.dp) // Set the icon size
+                        )
+                    }
                 }
             }
         }
+        // Row to place the TextField and Button horizontally
+
+
 
         // New Button for navigating to the link
         Button(

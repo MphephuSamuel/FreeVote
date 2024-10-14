@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -72,6 +73,7 @@ fun PinScreen(navController: NavController,
     val scrollState = rememberScrollState()
     // Instead of using 'remember', we use the ViewModel to store the PIN
     var pin by remember { mutableStateOf(TextFieldValue(viewModel.pinCode ?: "")) }
+    var isLoading by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -119,74 +121,86 @@ fun PinScreen(navController: NavController,
 
         Spacer(modifier = Modifier.height(60.dp))
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = Color.Black, // Black border
-                    shape = RectangleShape // Rectangular shape for consistency
-                )
-                .padding(1.dp) // Padding between border and content
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // PIN input field with yellow background and rectangular shape
-                TextField(
-                    value = pin,
-                    onValueChange = { newValue ->
-                        // Filter out non-numeric characters and limit to 6 digits
-                        if (newValue.text.all { it.isDigit() } && newValue.text.length <= 6) {
-                            pin = newValue
-                            // Update ViewModel with the new PIN
-                            viewModel.updatePinCode(newValue.text)
-                        }
-                    },
-                    label = { Text("PIN", color = Color.DarkGray) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(57.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color(0xFFF1A911), // Yellow background
-                        focusedIndicatorColor = Transparent,
-                        unfocusedIndicatorColor = Transparent,
-                        disabledIndicatorColor = Transparent
-
-                    ),
-                    shape = RectangleShape, // Rectangular shape to match other components
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    visualTransformation = PasswordVisualTransformation()
-                )
-
-                Button(
-                    onClick = onClick@{
-
-                        if (viewModel.pinCode.isEmpty()) {
-                            Toast.makeText(context, "Please enter your PIN", Toast.LENGTH_SHORT).show()
-                            return@onClick // Exit the onClick if PIN is    empty
-                        }
-                        performLoginWithPin(
-                            idNumber = idNumber,
-                            pin = viewModel.pinCode,
-                            context = context,
-                            navController = navController,
-                            viewModel
-                        )
-                    },
-                    modifier = Modifier
-                        .padding(start = 1.dp) // Add space between text field and button
-                        .size(57.dp), // Match the height of the TextField
-                    shape = RectangleShape, // Rectangular shape
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911)) // Yellow background
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(150.dp) // Set the icon size
+        if (isLoading) {
+            // Show CircularProgressIndicator when loading
+            CircularProgressIndicator(
+                color = Color(0xFFF1A911),
+                modifier = Modifier
+                    .padding(top = 20.dp)
+                    .size(60.dp)
+            )
+        }else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = Color.Black, // Black border
+                        shape = RectangleShape // Rectangular shape for consistency
                     )
+                    .padding(1.dp) // Padding between border and content
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // PIN input field with yellow background and rectangular shape
+                    TextField(
+                        value = pin,
+                        onValueChange = { newValue ->
+                            // Filter out non-numeric characters and limit to 6 digits
+                            if (newValue.text.all { it.isDigit() } && newValue.text.length <= 6) {
+                                pin = newValue
+                                // Update ViewModel with the new PIN
+                                viewModel.updatePinCode(newValue.text)
+                            }
+                        },
+                        label = { Text("PIN", color = Color.DarkGray) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(57.dp),
+                        colors = TextFieldDefaults.textFieldColors(
+                            containerColor = Color(0xFFF1A911), // Yellow background
+                            focusedIndicatorColor = Transparent,
+                            unfocusedIndicatorColor = Transparent,
+                            disabledIndicatorColor = Transparent
+
+                        ),
+                        shape = RectangleShape, // Rectangular shape to match other components
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        visualTransformation = PasswordVisualTransformation()
+                    )
+
+                    Button(
+                        onClick = onClick@{
+
+                            if (viewModel.pinCode.isEmpty()) {
+                                Toast.makeText(context, "Please enter your PIN", Toast.LENGTH_SHORT)
+                                    .show()
+                                return@onClick // Exit the onClick if PIN is    empty
+                            }
+                            isLoading=true
+                            performLoginWithPin(
+                                idNumber = idNumber,
+                                pin = viewModel.pinCode,
+                                context = context,
+                                navController = navController,
+                                viewModel
+                            )
+                        },
+                        modifier = Modifier
+                            .padding(start = 1.dp) // Add space between text field and button
+                            .size(57.dp), // Match the height of the TextField
+                        shape = RectangleShape, // Rectangular shape
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911)) // Yellow background
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(150.dp) // Set the icon size
+                        )
+                    }
                 }
             }
         }
