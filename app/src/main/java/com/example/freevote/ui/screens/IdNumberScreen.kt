@@ -246,7 +246,7 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
             shape = RoundedCornerShape(0.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
         ) {
-            Text("Get Testing Details", color = Color.White) // Change text color if needed
+            Text("Get Your App Testing Details", color = Color.White) // Change text color if needed
         }
 
         Spacer(modifier = Modifier.height(65.dp))
