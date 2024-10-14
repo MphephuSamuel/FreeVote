@@ -297,7 +297,7 @@ fun performLoginWithPin(
                             viewModel.updateAddress(address)
                             viewModel.updateIdNumber(idNumber)
 
-                            navController.navigate("homenews")
+                            navController.navigate("HomeNews")
                             // Navigate to the home screen
                         } else {
                             // Login failed, show error message
