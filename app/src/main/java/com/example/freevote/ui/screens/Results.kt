@@ -12,7 +12,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -42,45 +46,45 @@ fun countdown(
 
 @Composable
 fun ResultsScreen(paddingValues: PaddingValues) {
-    Column(
+    val scrollState = rememberScrollState()
+    var votingEndTime by remember { mutableStateOf(0L) }
+    var timeLeft by remember { mutableStateOf(0L) }
+    var isVotingActive by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        val database = FirebaseDatabase.getInstance().reference.child("voting_management")
+        database.child("votingEndTime").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                votingEndTime = snapshot.getValue(Long::class.java) ?: 0L
+                timeLeft = votingEndTime - System.currentTimeMillis() - 1000
+                if (timeLeft > 0) {
+                    countdown(
+                        initialTime = timeLeft,
+                        onTimeChange = { updatedTime -> timeLeft = updatedTime },
+                        onVotingEnd = { isVotingActive = false }
+                    )
+                } else {
+                    isVotingActive = false
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    // Use Box to set a white background color
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(Color.White) // Set background color to white
+            .padding(paddingValues)
     ) {
-        val scrollState = rememberScrollState()
-        var votingEndTime by remember { mutableStateOf(0L) }
-        var timeLeft by remember { mutableStateOf(0L) }
-        var isVotingActive by remember { mutableStateOf(true) }
-
-        LaunchedEffect(Unit) {
-            val database = FirebaseDatabase.getInstance().reference.child("voting_management")
-            database.child("votingEndTime").addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    votingEndTime = snapshot.getValue(Long::class.java) ?: 0L
-                    timeLeft = votingEndTime - System.currentTimeMillis() - 1000
-                    if (timeLeft > 0) {
-                        countdown(
-                            initialTime = timeLeft,
-                            onTimeChange = { updatedTime -> timeLeft = updatedTime },
-                            onVotingEnd = { isVotingActive = false }
-                        )
-                    } else {
-                        isVotingActive = false
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {}
-            })
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
                 .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             if (isVotingActive) {
                 CountdownTimer(timeLeft)
@@ -90,6 +94,7 @@ fun ResultsScreen(paddingValues: PaddingValues) {
         }
     }
 }
+
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -187,14 +192,43 @@ fun DisplayVoteResults(
         // National Compensatory Votes Card
         Card(
             modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                .fillMaxWidth()
+                .padding(8.dp) // Optional padding to ensure the shadow is visible
+                .drawBehind {
+                    // Softer, brusher shadow appearance
+                    val shadowColor = Color.Black.copy(alpha = 0.2f) // More transparent shadow
+                    val cornerRadius = 12.dp.toPx() // Same corner radius as the card
+
+                    // Draw shadow all around the card by centering it around the card edges
+                    drawRoundRect(
+                        color = shadowColor,
+                        topLeft = Offset(x = -8.dp.toPx(), y = -8.dp.toPx()), // Move shadow up and left
+                        size = Size(
+                            width = this.size.width + 16.dp.toPx(), // Add shadow on both sides horizontally
+                            height = this.size.height + 16.dp.toPx() // Add shadow on both sides vertically
+                        ),
+                        cornerRadius = CornerRadius(cornerRadius),
+                      // Use Fill for a smoother gradient-like fill
+                    )
+
+                    // Add a second shadow layer for more depth (optional)
+                    drawRoundRect(
+                        color = shadowColor.copy(alpha = 0.1f), // Lighter second shadow
+                        topLeft = Offset(x = -4.dp.toPx(), y = -4.dp.toPx()), // Slightly smaller offset
+                        size = Size(
+                            width = this.size.width + 8.dp.toPx(), // Smaller size for a layered effect
+                            height = this.size.height + 8.dp.toPx()
+                        ),
+                        cornerRadius = CornerRadius(cornerRadius)
+                    )
+                },
+            shape = RoundedCornerShape(12.dp), // Match card shape with shadow corners
+            elevation = CardDefaults.cardElevation(0.dp), // Disable built-in elevation (we use custom shadow)
             colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth() // Make Box fill the width of the card
+                    .fillMaxWidth()
                     .background(Color.White) // Ensure Box has a white background
                     .padding(16.dp)
             ) {
@@ -210,19 +244,50 @@ fun DisplayVoteResults(
             }
         }
 
+
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // National Regional Votes Card
         Card(
             modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                .fillMaxWidth()
+                .padding(8.dp) // Optional padding to ensure the shadow is visible
+                .drawBehind {
+                    // Softer, brusher shadow appearance
+                    val shadowColor = Color.Black.copy(alpha = 0.2f) // More transparent shadow
+                    val cornerRadius = 12.dp.toPx() // Same corner radius as the card
+
+                    // Draw shadow all around the card by centering it around the card edges
+                    drawRoundRect(
+                        color = shadowColor,
+                        topLeft = Offset(x = -8.dp.toPx(), y = -8.dp.toPx()), // Move shadow up and left
+                        size = Size(
+                            width = this.size.width + 16.dp.toPx(), // Add shadow on both sides horizontally
+                            height = this.size.height + 16.dp.toPx() // Add shadow on both sides vertically
+                        ),
+                        cornerRadius = CornerRadius(cornerRadius),
+                        // Use Fill for a smoother gradient-like fill
+                    )
+
+                    // Add a second shadow layer for more depth (optional)
+                    drawRoundRect(
+                        color = shadowColor.copy(alpha = 0.1f), // Lighter second shadow
+                        topLeft = Offset(x = -4.dp.toPx(), y = -4.dp.toPx()), // Slightly smaller offset
+                        size = Size(
+                            width = this.size.width + 8.dp.toPx(), // Smaller size for a layered effect
+                            height = this.size.height + 8.dp.toPx()
+                        ),
+                        cornerRadius = CornerRadius(cornerRadius)
+                    )
+                },
+            shape = RoundedCornerShape(12.dp), // Match card shape with shadow corners
+            elevation = CardDefaults.cardElevation(0.dp), // Disable built-in elevation (we use custom shadow)
             colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth() // Make Box fill the width of the card
+                    .fillMaxWidth()
                     .background(Color.White) // Ensure Box has a white background
                     .padding(16.dp)
             ) {
@@ -245,19 +310,49 @@ fun DisplayVoteResults(
             }
         }
 
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Provincial Legislature Votes Card
         Card(
             modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                .fillMaxWidth()
+                .padding(8.dp) // Optional padding to ensure the shadow is visible
+                .drawBehind {
+                    // Softer, brusher shadow appearance
+                    val shadowColor = Color.Black.copy(alpha = 0.2f) // More transparent shadow
+                    val cornerRadius = 12.dp.toPx() // Same corner radius as the card
+
+                    // Draw shadow all around the card by centering it around the card edges
+                    drawRoundRect(
+                        color = shadowColor,
+                        topLeft = Offset(x = -8.dp.toPx(), y = -8.dp.toPx()), // Move shadow up and left
+                        size = Size(
+                            width = this.size.width + 16.dp.toPx(), // Add shadow on both sides horizontally
+                            height = this.size.height + 16.dp.toPx() // Add shadow on both sides vertically
+                        ),
+                        cornerRadius = CornerRadius(cornerRadius),
+                        // Use Fill for a smoother gradient-like fill
+                    )
+
+                    // Add a second shadow layer for more depth (optional)
+                    drawRoundRect(
+                        color = shadowColor.copy(alpha = 0.1f), // Lighter second shadow
+                        topLeft = Offset(x = -4.dp.toPx(), y = -4.dp.toPx()), // Slightly smaller offset
+                        size = Size(
+                            width = this.size.width + 8.dp.toPx(), // Smaller size for a layered effect
+                            height = this.size.height + 8.dp.toPx()
+                        ),
+                        cornerRadius = CornerRadius(cornerRadius)
+                    )
+                },
+            shape = RoundedCornerShape(12.dp), // Match card shape with shadow corners
+            elevation = CardDefaults.cardElevation(0.dp), // Disable built-in elevation (we use custom shadow)
             colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth() // Make Box fill the width of the card
+                    .fillMaxWidth()
                     .background(Color.White) // Ensure Box has a white background
                     .padding(16.dp)
             ) {
@@ -308,7 +403,7 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                 .padding(vertical = 4.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .shadow(2.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
         ) {
             Column(
                 modifier = Modifier
@@ -342,7 +437,7 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                     color = when (percentage) {
                         highestPercentage -> Color(0xFF4CAF50) // Green for highest percentage
                         lowestPercentage -> Color(0xFFF44336) // Red for lowest percentage
-                        else -> Color(0xFF2196F3) // Blue for the rest
+                        else -> Color.Yellow // Yellow for the rest
                     },
                     trackColor = Color.Gray.copy(alpha = 0.3f)  // Track color for the unfilled portion
                 )
