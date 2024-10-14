@@ -142,7 +142,9 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
                 // Input fields using ViewModel state
                 TextField(
                     value = lName,
-                    onValueChange = { viewModel.updateLastName(it) },
+                    onValueChange = { newText ->
+                        viewModel.updateLastName(newText.uppercase()) // Convert to lowercase
+                    },
                     label = { Text("Last Name") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -151,15 +153,17 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
                     shape = RectangleShape,
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color(0xFFF1A911),
-                        focusedIndicatorColor = Transparent,
-                        unfocusedIndicatorColor = Transparent,
-                        disabledIndicatorColor = Transparent
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
                     ),
                 )
 
                 TextField(
                     value = names,
-                    onValueChange = { viewModel.updateNames(it) },
+                    onValueChange = { newText ->
+                        viewModel.updateNames(newText.uppercase()) // Convert to lowercase
+                    },
                     label = { Text("Names") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -214,7 +218,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
                 )
 
                 var expanded by remember { mutableStateOf(false) }
-                val genderOptions = listOf("male", "female")
+                val genderOptions = listOf("MALE", "FEMALE")
                 var selectedGender by remember { mutableStateOf("") }
 
 
@@ -226,7 +230,9 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
                     // TextField for gender selection, triggers dropdown on click
                     TextField(
                         value = selectedGender,
-                        onValueChange = { },  // No manual input
+                        onValueChange = { newText ->
+                            viewModel.updateGender(newText.uppercase()) // Convert to lowercase
+                        }, // No manual input
                         label = { Text("Gender") },
                         modifier = Modifier
                             .fillMaxWidth()
