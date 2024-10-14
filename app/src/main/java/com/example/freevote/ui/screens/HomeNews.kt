@@ -360,7 +360,7 @@ fun NavigationContent(navController1: NavHostController, paddingValues: PaddingV
         composable("home") { HomeScreen(paddingValues)  }
         composable("vote") { VoteScreen(paddingValues) }
         composable("results") { ResultsScreen(paddingValues) }
-        composable("about") { FetchVotesFromFirebase(paddingValues) }
+        composable("about") { AboutScreen(paddingValues) }
     }
 }
 

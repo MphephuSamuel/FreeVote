@@ -280,7 +280,7 @@ fun performLoginWithPin(
                 FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pin)
                     .addOnCompleteListener { task ->
                         // Set loading to false when the task completes
-                        onLoadingChange(false)
+
                         if (task.isSuccessful) {
                             // Login successful, update ViewModel and navigate to the home screen
                             viewModel.updateLastName(lastName)
@@ -290,25 +290,30 @@ fun performLoginWithPin(
                             viewModel.updateGender(gender)
                             viewModel.updateAddress(address)
                             viewModel.updateIdNumber(idNumber)
-
+                            onLoadingChange(false)
                             navController.navigate("homenews")
                             // Navigate to the home screen
                         } else {
                             // Login failed, show error message
-                            Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                            onLoadingChange(false)
+                            Toast.makeText(context, "Login failed: Wrong Pin", Toast.LENGTH_SHORT).show()
                         }
+                        onLoadingChange(false)
                     }
             } else {
+                onLoadingChange(false)
                 // Email not found for the given ID number
-                Toast.makeText(context, "No email found for this ID Number", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "No  email found for thisID Number", Toast.LENGTH_SHORT).show()
                 onLoadingChange(false) // Set loading to false even if email is not found
             }
         } else {
+            onLoadingChange(false)
             // User not found in the database
             Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show()
             onLoadingChange(false) // Set loading to false for this case as well
         }
     }.addOnFailureListener {
+        onLoadingChange(false)
         // Error occurred while fetching data from Firebase
         Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
         onLoadingChange(false) // Set loading to false on failure

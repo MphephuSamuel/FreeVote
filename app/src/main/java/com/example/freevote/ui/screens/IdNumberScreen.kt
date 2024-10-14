@@ -185,21 +185,27 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                                                 validateUserInRealtimeDb(idNumber) { isValidRealtime ->
                                                     if (isValidRealtime) {
                                                         // ID is valid in both, proceed to pin screen
+                                                        isLoading = false
                                                         navController.navigate("pinScreen/$id")
                                                     } else {
+
                                                         // ID is only valid in Firestore, update the ViewModel and proceed to registration screen
                                                         viewModel.updateIdNumber(idNumber) // Update ViewModel here
+                                                        isLoading=false
                                                         navController.navigate("registrationScreen/$idNumber")
                                                     }
                                                     isLoading = false
                                                 }
                                             } else {
+                                                isLoading=false
                                                 Toast.makeText(context, "You must be 18 or older to proceed.", Toast.LENGTH_SHORT).show()
                                             }
                                         } else {
+                                            isLoading=false
                                             // ID is invalid in Firestore, show an error message
                                             Toast.makeText(context, "Invalid ID number", Toast.LENGTH_SHORT).show()
                                         }
+                                        isLoading=false
                                     }
                                 } else {
                                     Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
