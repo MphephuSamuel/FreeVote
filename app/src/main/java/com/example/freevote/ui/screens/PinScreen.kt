@@ -74,6 +74,7 @@ fun PinScreen(navController: NavController,
     // Instead of using 'remember', we use the ViewModel to store the PIN
     var pin by remember { mutableStateOf(TextFieldValue(viewModel.pinCode ?: "")) }
     var isLoading by remember { mutableStateOf(false) }
+    ConnectivityAlertDialog()
 
     Column(
         modifier = Modifier
@@ -178,15 +179,20 @@ fun PinScreen(navController: NavController,
                                     .show()
                                 return@onClick // Exit the onClick if PIN is empty
                             }
-                            isLoading = true // Set loading to true before login
-                            performLoginWithPin(
-                                idNumber = idNumber,
-                                pin = viewModel.pinCode,
-                                context = context,
-                                navController = navController,
-                                viewModel = viewModel,
-                                onLoadingChange = { loading -> isLoading = loading } // Update loading state
-                            )
+                            if (isInternetAvailable(context)) {
+                                isLoading = true // Set loading to true before login
+                                performLoginWithPin(
+                                    idNumber = idNumber,
+                                    pin = viewModel.pinCode,
+                                    context = context,
+                                    navController = navController,
+                                    viewModel = viewModel,
+                                    onLoadingChange = { loading -> isLoading = loading } // Update loading state
+                                )
+                            }
+                            else {
+                                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+                            }
                         },
                         modifier = Modifier
                             .padding(start = 1.dp) // Add space between text field and button
@@ -290,7 +296,7 @@ fun performLoginWithPin(
                             viewModel.updateGender(gender)
                             viewModel.updateAddress(address)
                             viewModel.updateIdNumber(idNumber)
-                            onLoadingChange(false)
+
                             navController.navigate("homenews")
                             // Navigate to the home screen
                         } else {

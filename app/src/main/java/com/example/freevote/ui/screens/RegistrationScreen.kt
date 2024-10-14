@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,13 +25,19 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -206,22 +213,56 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
                     )
                 )
 
-                TextField(
-                    value = gender,
-                    onValueChange = { viewModel.updateGender(it.trim()) },
-                    label = { Text("Gender") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(0.dp)
-                        .border(1.dp, Color.Black, RectangleShape),
-                    shape = RectangleShape,
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color(0xFFF1A911),
-                        focusedIndicatorColor = Transparent,
-                        unfocusedIndicatorColor = Transparent,
-                        disabledIndicatorColor = Transparent
+                var expanded by remember { mutableStateOf(false) }
+                val genderOptions = listOf("male", "female")
+                var selectedGender by remember { mutableStateOf("") }
+
+
+                // ExposedDropdownMenuBox is used for dropdowns
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }  // Toggle dropdown on click
+                ) {
+                    // TextField for gender selection, triggers dropdown on click
+                    TextField(
+                        value = selectedGender,
+                        onValueChange = { },  // No manual input
+                        label = { Text("Gender") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor() // Ensures correct positioning of the dropdown
+                            .clickable { expanded = true }  // Open dropdown when clicked
+                            .border(1.dp, Color.Black, RectangleShape)
+                            .padding(0.dp),
+                        readOnly = true,  // Prevent manual input
+                        colors = TextFieldDefaults.textFieldColors(
+                            containerColor = Color(0xFFF1A911),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
+                        )
                     )
-                )
+
+                    // Dropdown menu that appears when expanded is true
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }  // Close dropdown on dismiss
+                    ) {
+                        genderOptions.forEach { gender ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(gender)  // Display each gender option
+                                },
+                                onClick = {
+                                    selectedGender = gender  // Set selected gender
+                                    expanded = false  // Close the dropdown after selection
+                                    viewModel.updateGender(gender)  // Update the ViewModel with the selected gender
+                                }
+                            )
+                        }
+                    }
+                }
+
 
                 TextField(
                     value = address,
