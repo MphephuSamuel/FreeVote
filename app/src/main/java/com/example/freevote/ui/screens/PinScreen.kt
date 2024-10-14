@@ -173,19 +173,19 @@ fun PinScreen(navController: NavController,
 
                     Button(
                         onClick = onClick@{
-
                             if (viewModel.pinCode.isEmpty()) {
                                 Toast.makeText(context, "Please enter your PIN", Toast.LENGTH_SHORT)
                                     .show()
-                                return@onClick // Exit the onClick if PIN is    empty
+                                return@onClick // Exit the onClick if PIN is empty
                             }
-                            isLoading=true
+                            isLoading = true // Set loading to true before login
                             performLoginWithPin(
                                 idNumber = idNumber,
                                 pin = viewModel.pinCode,
                                 context = context,
                                 navController = navController,
-                                viewModel
+                                viewModel = viewModel,
+                                onLoadingChange = { loading -> isLoading = loading } // Update loading state
                             )
                         },
                         modifier = Modifier
@@ -253,11 +253,15 @@ fun PinScreen(navController: NavController,
 
 fun performLoginWithPin(
     idNumber: String,
-    pin: String, // This is the PIN (used as the password)
+    pin: String,
     context: Context,
     navController: NavController,
-    viewModel: MainViewModel
+    viewModel: MainViewModel,
+    onLoadingChange: (Boolean) -> Unit // Callback to change loading state
 ) {
+    // Set loading to true when starting the login process
+    onLoadingChange(true)
+
     val database = FirebaseDatabase.getInstance().getReference("users/$idNumber")
 
     // Fetch user data from Firebase Realtime Database
@@ -275,6 +279,8 @@ fun performLoginWithPin(
                 // Use Firebase Authentication to log in with the retrieved email and entered PIN
                 FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pin)
                     .addOnCompleteListener { task ->
+                        // Set loading to false when the task completes
+                        onLoadingChange(false)
                         if (task.isSuccessful) {
                             // Login successful, update ViewModel and navigate to the home screen
                             viewModel.updateLastName(lastName)
@@ -286,7 +292,7 @@ fun performLoginWithPin(
                             viewModel.updateIdNumber(idNumber)
 
                             navController.navigate("homenews")
-                                // Navigate to the home screen
+                            // Navigate to the home screen
                         } else {
                             // Login failed, show error message
                             Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
@@ -295,14 +301,17 @@ fun performLoginWithPin(
             } else {
                 // Email not found for the given ID number
                 Toast.makeText(context, "No email found for this ID Number", Toast.LENGTH_SHORT).show()
+                onLoadingChange(false) // Set loading to false even if email is not found
             }
         } else {
             // User not found in the database
             Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show()
+            onLoadingChange(false) // Set loading to false for this case as well
         }
     }.addOnFailureListener {
         // Error occurred while fetching data from Firebase
         Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+        onLoadingChange(false) // Set loading to false on failure
     }
 }
 
