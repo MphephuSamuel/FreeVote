@@ -192,7 +192,6 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
                 idNumber = idNumber // Pass the ID number
             )
         }
-
-
+        composable("termsAndConditionsReadOnly") { TermsAndConditionsScreenReadOnly() }
     }
 }

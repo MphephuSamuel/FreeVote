@@ -195,7 +195,9 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        navController.navigate("termsAndConditionsReadOnly") // Navigate to the simplified read-only screen
+                    },
                     shape = RoundedCornerShape(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth()
