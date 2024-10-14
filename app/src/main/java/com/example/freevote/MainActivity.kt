@@ -61,7 +61,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
         composable("homenews") { MainScreen(navController, viewModel) }
         composable("vote") { VotePage(Modifier, navController, viewModel) }
         //composable("results") { ResultsScreen(navController, viewModel) }
-        composable("settings") { SettingsScreen(Modifier, navController) }
+        composable("settings") { SettingsScreen(viewModel, Modifier, navController) }
 
 
         composable("changePin") { ChangePinScreen(Modifier, navController, viewModel) }

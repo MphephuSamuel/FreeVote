@@ -1,9 +1,5 @@
 package com.example.freevote.ui.screens
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context.NOTIFICATION_SERVICE
-import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,11 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.freevote.R
+import com.example.freevote.viewmodel.MainViewModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -37,7 +31,7 @@ import com.google.firebase.database.ValueEventListener
 
 
 @Composable
-fun SettingsScreen(modifier: Modifier, navController: NavController) {
+fun SettingsScreen(viewModel: MainViewModel, modifier: Modifier, navController: NavController) {
     var currentScreen by remember { mutableStateOf("settings") }
 
     when (currentScreen) {
@@ -54,11 +48,13 @@ fun SettingsScreen(modifier: Modifier, navController: NavController) {
             modifier = modifier
         )
         "help" -> HelpScreen(
+            viewModel = viewModel,
             onBackClick = { currentScreen = "settings" },
             onHelpCenterClick = { currentScreen = "helpCenter" },
             modifier = modifier
         )
         "helpCenter" -> HelpCenterForm(
+            viewModel,
             onBackClick = { currentScreen = "help" },
             modifier = modifier
         )
@@ -123,7 +119,7 @@ fun AccountDetails(onBackClick: () -> Unit, modifier: Modifier) {
 }
 
 @Composable
-fun HelpScreen(onBackClick: () -> Unit, onHelpCenterClick: () -> Unit, modifier: Modifier) {
+fun HelpScreen(viewModel: MainViewModel, onBackClick: () -> Unit, onHelpCenterClick: () -> Unit, modifier: Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -144,10 +140,10 @@ fun HelpScreen(onBackClick: () -> Unit, onHelpCenterClick: () -> Unit, modifier:
 }
 
 @Composable
-fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
+fun HelpCenterForm(viewModel: MainViewModel, onBackClick: () -> Unit, modifier: Modifier) {
     val context = LocalContext.current
     var userQuery by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
+    var idNumber by remember { mutableStateOf("") }
     var notificationMessage by remember { mutableStateOf("") }
     val database = FirebaseDatabase.getInstance() // Initialize Realtime Database instance
 
@@ -165,14 +161,7 @@ fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
         Text(text = "Help Center", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
 
         // TextField for username input
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Your Username") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
+        idNumber= viewModel.idNumber
 
         // TextField for user to type their question
         OutlinedTextField(
@@ -189,9 +178,9 @@ fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
             onClick = {
                 Log.d("HelpCenterForm", "Send button clicked")
 
-                if (username.isNotBlank() && userQuery.isNotBlank()) {
+                if (idNumber.isNotBlank() && userQuery.isNotBlank()) {
                     val userHelpRequest = hashMapOf(
-                        "username" to username,
+                        "idNumber" to idNumber,
                         "query" to userQuery
                     )
 
@@ -199,7 +188,7 @@ fun HelpCenterForm(onBackClick: () -> Unit, modifier: Modifier) {
                     helpRequestsRef.push().setValue(userHelpRequest)
                         .addOnSuccessListener {
                             notificationMessage = "Request sent successfully"
-                            username = ""
+                            idNumber = ""
                             userQuery = "" // Clear the form
                         }
                         .addOnFailureListener { e ->
