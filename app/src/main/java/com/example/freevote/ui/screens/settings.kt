@@ -1,5 +1,7 @@
 package com.example.freevote.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,13 +29,16 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-
-
-
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 @Composable
-fun SettingsScreen(viewModel: MainViewModel, modifier: Modifier, navController: NavController) {
+fun SettingsScreen(
+    viewModel: MainViewModel,
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    firestore: FirebaseFirestore  // Firestore is required for AccountDetails
+) {
     var currentScreen by remember { mutableStateOf("settings") }
 
     when (currentScreen) {
@@ -41,13 +46,16 @@ fun SettingsScreen(viewModel: MainViewModel, modifier: Modifier, navController: 
             onBackClick = { navController.navigate("homenews") },
             onAccountClick = { currentScreen = "account" },
             onHelpClick = { currentScreen = "help" },
+            onPrivacyClick = { currentScreen = "privacy" },
             onNotificationClick = { currentScreen = "notifications" }, // Added for notification screen
             navController = navController,
             modifier = modifier
         )
         "account" -> AccountDetails(
             onBackClick = { currentScreen = "settings" },
-            modifier = modifier
+            modifier = modifier,
+            firestore = firestore,  // Firestore is passed here
+            navController = navController  // NavController is also passed
         )
         "help" -> HelpScreen(
             viewModel = viewModel,
@@ -56,14 +64,18 @@ fun SettingsScreen(viewModel: MainViewModel, modifier: Modifier, navController: 
             modifier = modifier
         )
         "helpCenter" -> HelpCenterForm(
-            viewModel,
+            viewModel = viewModel,
             onBackClick = { currentScreen = "help" },
             modifier = modifier
         )
         "notifications" -> NotificationScreen(
             onBackClick = { currentScreen = "settings" },
             modifier = modifier
-        ) // Added NotificationScreen
+        )
+        "privacy" -> PrivacyScreen(
+            onBackClick = { currentScreen = "settings" },
+            modifier = modifier
+        )
     }
 }
 
@@ -72,6 +84,7 @@ fun SettingsList(
     onBackClick: () -> Unit,
     onAccountClick: () -> Unit,
     onHelpClick: () -> Unit,
+    onPrivacyClick: () -> Unit,
     onNotificationClick: () -> Unit, // Added for notification
     navController: NavController,
     modifier: Modifier
@@ -89,36 +102,46 @@ fun SettingsList(
 
         // Settings options
         SettingItem(icon = Icons.Default.AccountCircle, title = "Account", onClick = onAccountClick)
-        SettingItem(icon = Icons.Default.Lock, title = "Privacy")
-        SettingItem(icon = Icons.Default.Person, title = "Avatar")
+        SettingItem(icon = Icons.Default.Lock, title = "Privacy Settings", onClick = onPrivacyClick)
         SettingItem(icon = Icons.Default.Notifications, title = "Notifications", onClick = onNotificationClick) // Navigate to notifications
-        SettingItem(icon = Icons.Default.Settings, title = "Storage and Data")
         SettingItem(icon = Icons.Default.Info, title = "Help", onClick = onHelpClick)
     }
 }
 
 @Composable
-fun AccountDetails(onBackClick: () -> Unit, modifier: Modifier) {
+fun AccountDetails(
+    onBackClick: () -> Unit,
+    navController: NavController, // Add NavController here
+    modifier: Modifier,
+    firestore: FirebaseFirestore
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        // Back button
         IconButton(onClick = onBackClick) {
             Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
         }
 
         Text(text = "Account Settings", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
 
-        // Account details options
-        SettingItem(icon = Icons.Default.Notifications, title = "Security Notifications")
-        SettingItem(icon = Icons.Default.Info, title = "Request Account Info")
-        SettingItem(icon = Icons.Default.Add, title = "Add Account")
-        SettingItem(icon = Icons.Default.Delete, title = "Delete Account")
+        // Delete Account Setting Item
+        SettingItem(icon = Icons.Default.Delete, title = "Delete Account", onClick = {
+            // Navigate to DeleteAccount screen
+            val idNumber = "user-id-123" // Replace with actual logic to get the user's ID
+            navController.navigate("DeleteAccount/$idNumber")
+        })
+
+        // Change PIN Setting Item
+        SettingItem(icon = Icons.Default.Edit, title = "Change PIN", onClick = {
+            // Navigate to Change PIN Screen
+            navController.navigate("changePin")
+        })
     }
 }
+
 
 @Composable
 fun HelpScreen(viewModel: MainViewModel, onBackClick: () -> Unit, onHelpCenterClick: () -> Unit, modifier: Modifier) {
@@ -137,7 +160,6 @@ fun HelpScreen(viewModel: MainViewModel, onBackClick: () -> Unit, onHelpCenterCl
 
         // Help details options
         SettingItem(icon = Icons.Default.Info, title = "Help Center", onClick = onHelpCenterClick)
-        SettingItem(icon = Icons.Default.Info, title = "App Information")
     }
 }
 
@@ -284,6 +306,82 @@ fun QueryItem(idNumber: String, query: String) {
                 color = Color(0xFF555555),
                 modifier = Modifier.padding(top = 4.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun PrivacyScreen(onBackClick: () -> Unit, modifier: Modifier) {
+    val context = LocalContext.current
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        IconButton(onClick = onBackClick) {
+            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 16.dp)
+        ) {
+            item {
+                Text(text = "Privacy Policy", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+
+                Text(
+                    text = "At My Voting App, we are committed to protecting your privacy. We collect and store your data securely in accordance with the latest data protection standards. Your information is never shared with third parties without your consent. For more information, please refer to our full privacy policy.",
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                Text(
+                    text = "Key Highlights:",
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                Text(text = "- Data collection is minimal and used only to improve your experience.")
+                Text(text = "- Your voting data is encrypted and stored securely.")
+                Text(text = "- You have the right to access, modify, or delete your data.")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(text = "Contact Us", fontSize = 18.sp, modifier = Modifier.padding(vertical = 8.dp))
+
+                Text(
+                    text = "If you have any questions about our privacy practices or need assistance with your data, please reach out to us using the following contact details:",
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                Text(
+                    text = "Email: freevote923@gmail.com",
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable {
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:freevote923@gmail.com")
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+
+                Text(
+                    text = "Phone: 063 258 9965",
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable {
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:0632589965")
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+
+                Text(text = "Address: 123 Building 13 University of Mpumalanga, Mbombela, South Africa", fontSize = 16.sp)
+            }
         }
     }
 }

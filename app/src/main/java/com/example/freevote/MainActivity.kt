@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
@@ -18,6 +19,7 @@ import com.example.freevote.ui.screens.*
 import com.example.myapplication.IdNumberScreen
 import com.example.myproject1.ui.theme.FreeVoteTheme
 import com.example.freevote.viewmodel.MainViewModel
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels() // Use activity-scoped ViewModel
@@ -61,8 +63,14 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
         composable("homenews") { MainScreen(navController, viewModel) }
         composable("vote") { VotePage(Modifier, navController, viewModel) }
         //composable("results") { ResultsScreen(navController, viewModel) }
-        composable("settings") { SettingsScreen(viewModel, Modifier, navController) }
-
+        composable("settings") {
+            SettingsScreen(
+                viewModel = viewModel,
+                modifier = Modifier.fillMaxSize(),
+                navController = navController,
+                firestore = FirebaseFirestore.getInstance()  // Pass Firestore instance
+            )
+        }
 
         composable("changePin") { ChangePinScreen(Modifier, navController, viewModel) }
         composable("profile") { ProfileScreen(viewModel, navController) }
@@ -157,6 +165,34 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
             )
 
         }
+        // Account Details Screen Route
+        composable("accountDetails") {
+            AccountDetails(
+                onBackClick = { navController.popBackStack() },
+                navController = navController,
+                modifier = Modifier.fillMaxSize(),
+                firestore = FirebaseFirestore.getInstance()
+            )
+        }
+456
+        // Change PIN Screen Route
+        composable("changePin") {
+            ChangePinScreen(
+                navController = navController,
+                viewModel = MainViewModel() // Pass the appropriate ViewModel
+            )
+        }
+        composable(
+            route = "DeleteAccount/{ID_NUMBER}",
+            arguments = listOf(navArgument("ID_NUMBER") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: ""
+            DeleteAccount(
+                navController = navController,
+                idNumber = idNumber // Pass the ID number
+            )
+        }
+
 
     }
 }
