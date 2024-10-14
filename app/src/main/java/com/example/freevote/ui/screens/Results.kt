@@ -177,19 +177,25 @@ fun DisplayVoteResults(
     nationalRegionalVotes: Map<String, List<CandidateVotes>>,
     provincialLegislatureVotes: Map<String, List<CandidateVotes>>
 ) {
-    Column(modifier = Modifier.padding(16.dp)) {
+    // Column fills the maximum size with a white background
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp)
+            .background(Color.White) // Set the overall background to white
+    ) {
+        // National Compensatory Votes Card
         Card(
             modifier = Modifier
                 .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Transparent // Set the container background to be transparent
-            )
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
         ) {
             Box(
                 modifier = Modifier
-                    .background(Color.Blue)
+                    .fillMaxWidth() // Make Box fill the width of the card
+                    .background(Color.White) // Ensure Box has a white background
                     .padding(16.dp)
             ) {
                 Column {
@@ -204,22 +210,20 @@ fun DisplayVoteResults(
             }
         }
 
-
-
         Spacer(modifier = Modifier.height(16.dp))
 
+        // National Regional Votes Card
         Card(
             modifier = Modifier
                 .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Transparent // Set the container background to be transparent
-            )
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
         ) {
             Box(
                 modifier = Modifier
-                    .background(Color.Blue)
+                    .fillMaxWidth() // Make Box fill the width of the card
+                    .background(Color.White) // Ensure Box has a white background
                     .padding(16.dp)
             ) {
                 Column {
@@ -243,18 +247,18 @@ fun DisplayVoteResults(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Provincial Legislature Votes Card
         Card(
             modifier = Modifier
                 .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Transparent // Set the container background to be transparent
-            )
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
         ) {
             Box(
                 modifier = Modifier
-                    .background(Color.Blue)
+                    .fillMaxWidth() // Make Box fill the width of the card
+                    .background(Color.White) // Ensure Box has a white background
                     .padding(16.dp)
             ) {
                 Column {
@@ -275,9 +279,9 @@ fun DisplayVoteResults(
                 }
             }
         }
-
     }
 }
+
 
 @Composable
 fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
@@ -290,8 +294,14 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
         candidate to (votePercentage * 100)
     }.sortedByDescending { it.second } // Sort by vote percentage
 
+    // Find the highest and lowest percentages
+    val highestPercentage = rankedCandidates.maxOfOrNull { it.second } ?: 0f
+    val lowestPercentage = rankedCandidates.minOfOrNull { it.second } ?: 0f
+
     // Display each ranked candidate
     rankedCandidates.forEach { (candidate, percentage) ->
+        val votePercentage = percentage / 100 // Convert percentage back to a decimal for progress bar
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -309,7 +319,6 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Ensure the row takes the full width
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     BasicText(
                         text = candidate.name,
@@ -322,14 +331,23 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                         modifier = Modifier.padding(start = 8.dp) // Optional: Add space to the start of this text
                     )
                 }
+                // Progress bar showing percentage of votes with custom styling
                 LinearProgressIndicator(
-                    progress = percentage / 100,
+                    progress = votePercentage,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(20.dp)
-                        .padding(top = 4.dp)
+                        .height(12.dp) // Slightly increased height for better visibility
+                        .clip(RoundedCornerShape(12.dp)) // Add rounded corners
+                        .background(Color.LightGray.copy(alpha = 0.2f)), // Background color for unfilled part
+                    color = when (percentage) {
+                        highestPercentage -> Color(0xFF4CAF50) // Green for highest percentage
+                        lowestPercentage -> Color(0xFFF44336) // Red for lowest percentage
+                        else -> Color(0xFF2196F3) // Blue for the rest
+                    },
+                    trackColor = Color.Gray.copy(alpha = 0.3f)  // Track color for the unfilled portion
                 )
             }
         }
     }
 }
+
