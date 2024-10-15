@@ -192,7 +192,10 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
                 idNumber = idNumber // Pass the ID number
             )
         }
-
+        composable("webViewScreen/{url}") { backStackEntry ->
+            val url = backStackEntry.arguments?.getString("url") ?: ""
+            WebViewScreen(url)
+        }
 
     }
 }

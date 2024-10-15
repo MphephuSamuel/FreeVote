@@ -2,6 +2,7 @@
 
 package com.example.myapplication
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.example.freevote.viewmodel.MainViewModel
 import com.example.freevote.R
@@ -56,6 +58,8 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import java.text.SimpleDateFormat
 import java.util.*
+import android.webkit.WebView
+import android.webkit.WebViewClient
 
 val rubikMoonrocksFont = FontFamily(
     Font(
@@ -236,20 +240,45 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
 
 
         // New Button for navigating to the link
-        Button(
-            onClick = {
-                // Open the link
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://freevote-60cd6.web.app/"))
-                context.startActivity(intent)
-            },
+        // Place this after the existing "Get Testing Details" button
+        Row(
             modifier = Modifier
                 .padding(top = 8.dp) // Add a little spacing from the previous components
-                .height(57.dp) // Keep the height the same
                 .fillMaxWidth(), // Fill width
-            shape = RoundedCornerShape(0.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+            horizontalArrangement = Arrangement.SpaceBetween // Space them evenly
         ) {
-            Text("Get Testing Details", color = Color.White) // Change text color if needed
+
+            // Button for navigating to the WebView
+            Button(
+                onClick = {
+                    // Navigate to the WebView screen with the specified URL
+                    navController.navigate("webViewScreen/${Uri.encode("https://mphephusamuel.github.io/FreeVoteVideo/")}")
+                },
+                modifier = Modifier
+                    .weight(1f) // Allow this button to take equal space
+                    .height(57.dp), // Keep the height the same
+                shape = RoundedCornerShape(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+            ) {
+                Text(" Not Sure? Click for Instructions", color = Color.Red) // Change text color if needed
+            }
+
+            Spacer(modifier = Modifier.width(8.dp)) // Space between buttons
+            // Button for navigating to the link
+            Button(
+                onClick = {
+                    // Open the link
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://freevote-60cd6.web.app/"))
+                    context.startActivity(intent)
+                },
+                modifier = Modifier
+                    .weight(1f) // Allow this button to take equal space
+                    .height(57.dp), // Keep the height the same
+                shape = RoundedCornerShape(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+            ) {
+                Text("Get Testing Details", color = Color.White) // Change text color if needed
+            }
         }
 
         Spacer(modifier = Modifier.height(65.dp))
@@ -336,4 +365,18 @@ fun isUser18OrOlder(idNumber: String): Boolean {
 
     // Compare birth date with the current date minus 18 years
     return birthDate?.let { it.before(calendar.time) } ?: false
+}
+
+
+
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+fun WebViewScreen(url: String) {
+    AndroidView(factory = { context ->
+        WebView(context).apply {
+            webViewClient = WebViewClient() // Ensures that links open within the WebView
+            settings.javaScriptEnabled = true // Enable JavaScript if needed
+            loadUrl(url) // Load the URL
+        }
+    })
 }
