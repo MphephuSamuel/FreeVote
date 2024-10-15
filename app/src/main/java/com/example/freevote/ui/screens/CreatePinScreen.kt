@@ -28,6 +28,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -99,11 +100,13 @@ fun CreatePinScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "REGISTRATION",
+                    text = "CREATE PIN",
                     color = Color.Red,
+                    textAlign = TextAlign.Center,
                     fontSize = 33.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(16.dp)
@@ -114,7 +117,7 @@ fun CreatePinScreen(
                     onValueChange = { newValue ->
                         viewModel.updatePinChange(newValue.filter { it.isDigit() }.take(6))
                     },
-                    label = { Text("Create Pin") },
+                    label = { Text("Enter 6 digit PIN") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(57.dp),
