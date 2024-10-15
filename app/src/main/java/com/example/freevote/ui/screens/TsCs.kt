@@ -32,11 +32,13 @@ fun TermsAndConditionsScreen(navController: NavController, onAccept: () -> Unit)
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(WindowInsets.systemBars.asPaddingValues()) // Adjust for system bars
+            .padding(horizontal = 16.dp) // Additional horizontal padding
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    )
+    {
 
         Text(
             text = "Terms and Conditions",
