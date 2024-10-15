@@ -1,13 +1,11 @@
 package com.example.freevote.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -17,9 +15,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
@@ -44,20 +45,32 @@ fun DeleteAccount(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Delete Account", color = androidx.compose.ui.graphics.Color.Red)
+        Text(
+            text = "Delete Account",
+            color = Color.Black,
+            fontSize = 28.sp,
+            modifier = Modifier.padding(bottom = 16.dp) // Space below the title
+        )
 
         // Password input
         TextField(
             value = password.value,
-            onValueChange = { password.value = it },
-            label = { Text("Enter your Pin") },
+            onValueChange = { newValue ->
+                // Limit to 6 digits and allow only numeric input
+                if (newValue.length <= 6 && newValue.all { it.isDigit() }) {
+                    password.value = newValue
+                }
+            },
+            label = { Text("Enter your PIN") },
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = androidx.compose.ui.graphics.Color(0xFFF1A911)
+                containerColor = Color(0xFFF1A911)
             )
         )
+
+        Spacer(modifier = Modifier.height(14.dp)) // Space between the TextField and Button
 
         // Button to delete account
         Button(
@@ -71,16 +84,20 @@ fun DeleteAccount(
                             deleteUser(currentUser, navController, context, idNumber)
                         } else {
                             // Re-authentication failed
-                            Toast.makeText(context, "Re-authentication failed. Please check your pin.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Re-authentication failed. Please check your PIN.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
-                    Toast.makeText(context, "Please enter your pin.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Please enter your PIN.", Toast.LENGTH_SHORT).show()
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red) // Change button color
         ) {
-            Text(text = "Delete Account")
+            Text(text = "Delete Account", color = Color.White) // Change button text color
         }
     }
 }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -219,7 +220,10 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        // Navigate to the PrivacyScreen
+                        navController.navigate("PrivacyScreen") // Replace "privacy_screen" with the actual route name for the PrivacyScreen
+                    },
                     shape = RoundedCornerShape(0.dp), // To adjust corner radius
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth() // Full width for the button
@@ -430,6 +434,82 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
 }
 
 @Composable
+fun PrivacyScreen(onBackClick: () -> Unit, modifier: Modifier) {
+    val context = LocalContext.current
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        IconButton(onClick = onBackClick) {
+            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 16.dp)
+        ) {
+            item {
+                Text(text = "Privacy Policy", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+
+                Text(
+                    text = "At My Voting App, we are committed to protecting your privacy. We collect and store your data securely in accordance with the latest data protection standards. Your information is never shared with third parties without your consent. For more information, please refer to our full privacy policy.",
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                Text(
+                    text = "Key Highlights:",
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                Text(text = "- Data collection is minimal and used only to improve your experience.")
+                Text(text = "- Your voting data is encrypted and stored securely.")
+                Text(text = "- You have the right to access, modify, or delete your data.")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(text = "Contact Us", fontSize = 18.sp, modifier = Modifier.padding(vertical = 8.dp))
+
+                Text(
+                    text = "If you have any questions about our privacy practices or need assistance with your data, please reach out to us using the following contact details:",
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                Text(
+                    text = "Email: freevote923@gmail.com",
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable {
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:freevote923@gmail.com")
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+
+                Text(
+                    text = "Phone: 063 258 9965",
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable {
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:0632589965")
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+
+                Text(text = "Address: 123 Building 13 University of Mpumalanga, Mbombela, South Africa", fontSize = 16.sp)
+            }
+        }
+    }
+}
+
+@Composable
 fun HomeScreen(paddingValues: PaddingValues) {
     // Initialize ViewModel
     val newsViewModel: NewsViewModel = viewModel()
@@ -534,97 +614,103 @@ fun StatisticsScreen(paddingValues: PaddingValues) {
 @Composable
 fun AboutScreen(paddingValues: PaddingValues) {
     // Content for About
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()), // Enable vertical scrolling
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Top
+            .background(Color.White) // Set background to white
     ) {
-        Text(
-            text = "About the Free Vote App",
-            fontSize = 24.sp,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()), // Enable vertical scrolling
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Text(
+                text = "About the Free Vote App",
+                fontSize = 24.sp,
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
-        Text(
-            text = "The Free Vote App is an innovative and user-friendly mobile application designed to revolutionize the voting process in South Africa. Developed by the BlackBulls group, the app is tailored specifically to facilitate and streamline national compensatory, national regional, and provincial legislature voting. Our mission is to empower every South African voter by providing a secure, accessible, and transparent platform that ensures their voices are heard during elections.",
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Text(
+                text = "The Free Vote App is an innovative and user-friendly mobile application designed to revolutionize the voting process in South Africa. Developed by the BlackBulls group, the app is tailored specifically to facilitate and streamline national compensatory, national regional, and provincial legislature voting. Our mission is to empower every South African voter by providing a secure, accessible, and transparent platform that ensures their voices are heard during elections.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        Text(
-            text = "Our Purpose",
-            fontSize = 20.sp,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Text(
+                text = "Our Purpose",
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        Text(
-            text = "In South Africa’s democratic landscape, voting is the cornerstone of civic participation. The Free Vote App is designed to simplify the complex electoral process, ensuring that voters can participate seamlessly in all types of elections, from national compensatory votes to regional and provincial legislature elections. This app provides an efficient digital solution, making it easier for citizens to cast their votes securely and confidently.",
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Text(
+                text = "In South Africa’s democratic landscape, voting is the cornerstone of civic participation. The Free Vote App is designed to simplify the complex electoral process, ensuring that voters can participate seamlessly in all types of elections, from national compensatory votes to regional and provincial legislature elections. This app provides an efficient digital solution, making it easier for citizens to cast their votes securely and confidently.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        Text(
-            text = "Key Features",
-            fontSize = 20.sp,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Text(
+                text = "Key Features",
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        Text(
-            text = "- User-Centric Design: Built with a focus on usability, ensuring voters can navigate the platform with ease.",
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
+            Text(
+                text = "- User-Centric Design: Built with a focus on usability, ensuring voters can navigate the platform with ease.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
 
-        Text(
-            text = "- Comprehensive Voting Options: Users can participate in national compensatory, national regional, and provincial legislature elections.",
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
+            Text(
+                text = "- Comprehensive Voting Options: Users can participate in national compensatory, national regional, and provincial legislature elections.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
 
-        Text(
-            text = "- Secure Voting: Using advanced encryption, the app ensures the integrity and security of the voting process.",
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
+            Text(
+                text = "- Secure Voting: Using advanced encryption, the app ensures the integrity and security of the voting process.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
 
-        Text(
-            text = "- Accessibility and Inclusivity: The app is inclusive, providing access to voters in urban, rural, and underserved communities.",
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
+            Text(
+                text = "- Accessibility and Inclusivity: The app is inclusive, providing access to voters in urban, rural, and underserved communities.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
 
-        Text(
-            text = "Designed by the BlackBulls Group",
-            fontSize = 20.sp,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Text(
+                text = "Designed by the BlackBulls Group",
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        Text(
-            text = "The BlackBulls group, a team of dedicated South African developers, is passionate about using technology to improve societal systems. Our goal is to simplify the voting process and promote transparency, accuracy, and accessibility in elections.",
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Text(
+                text = "The BlackBulls group, a team of dedicated South African developers, is passionate about using technology to improve societal systems. Our goal is to simplify the voting process and promote transparency, accuracy, and accessibility in elections.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        Text(
-            text = "Our Vision",
-            fontSize = 20.sp,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Text(
+                text = "Our Vision",
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
-        Text(
-            text = "Our vision is to empower South Africans through technology, ensuring that voting is simple, secure, and accessible for everyone. We aim to encourage higher voter turnout and ensure that every South African can have a voice in shaping the country’s future.",
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Text(
+                text = "Our vision is to empower South Africans through technology, ensuring that voting is simple, secure, and accessible for everyone. We aim to encourage higher voter turnout and ensure that every South African can have a voice in shaping the country’s future.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
     }
 }
 

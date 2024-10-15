@@ -72,10 +72,6 @@ fun SettingsScreen(
             onBackClick = { currentScreen = "settings" },
             modifier = modifier
         )
-        "privacy" -> PrivacyScreen(
-            onBackClick = { currentScreen = "settings" },
-            modifier = modifier
-        )
     }
 }
 
@@ -102,7 +98,6 @@ fun SettingsList(
 
         // Settings options
         SettingItem(icon = Icons.Default.AccountCircle, title = "Account", onClick = onAccountClick)
-        SettingItem(icon = Icons.Default.Lock, title = "Privacy Settings", onClick = onPrivacyClick)
         SettingItem(icon = Icons.Default.Notifications, title = "Notifications", onClick = onNotificationClick) // Navigate to notifications
         SettingItem(icon = Icons.Default.Info, title = "Help", onClick = onHelpClick)
     }
@@ -310,81 +305,7 @@ fun QueryItem(idNumber: String, query: String) {
     }
 }
 
-@Composable
-fun PrivacyScreen(onBackClick: () -> Unit, modifier: Modifier) {
-    val context = LocalContext.current
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-        IconButton(onClick = onBackClick) {
-            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 16.dp)
-        ) {
-            item {
-                Text(text = "Privacy Policy", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
-
-                Text(
-                    text = "At My Voting App, we are committed to protecting your privacy. We collect and store your data securely in accordance with the latest data protection standards. Your information is never shared with third parties without your consent. For more information, please refer to our full privacy policy.",
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                Text(
-                    text = "Key Highlights:",
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                Text(text = "- Data collection is minimal and used only to improve your experience.")
-                Text(text = "- Your voting data is encrypted and stored securely.")
-                Text(text = "- You have the right to access, modify, or delete your data.")
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(text = "Contact Us", fontSize = 18.sp, modifier = Modifier.padding(vertical = 8.dp))
-
-                Text(
-                    text = "If you have any questions about our privacy practices or need assistance with your data, please reach out to us using the following contact details:",
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                Text(
-                    text = "Email: freevote923@gmail.com",
-                    fontSize = 16.sp,
-                    modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_SENDTO).apply {
-                            data = Uri.parse("mailto:freevote923@gmail.com")
-                        }
-                        context.startActivity(intent)
-                    }
-                )
-
-                Text(
-                    text = "Phone: 063 258 9965",
-                    fontSize = 16.sp,
-                    modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:0632589965")
-                        }
-                        context.startActivity(intent)
-                    }
-                )
-
-                Text(text = "Address: 123 Building 13 University of Mpumalanga, Mbombela, South Africa", fontSize = 16.sp)
-            }
-        }
-    }
-}
 
 @Composable
 fun ResponseItem(response: UserResponse) {

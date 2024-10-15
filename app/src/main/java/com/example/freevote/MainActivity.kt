@@ -196,6 +196,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
             val url = backStackEntry.arguments?.getString("url") ?: ""
             WebViewScreen(url)
         }
-
+        composable("PrivacyScreen") { PrivacyScreen(onBackClick = { navController.popBackStack() }, modifier = Modifier.fillMaxSize()) }
+        composable("termsAndConditionsReadOnly") { TermsAndConditionsScreenReadOnly() }
     }
 }

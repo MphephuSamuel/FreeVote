@@ -2,6 +2,7 @@ package com.example.freevote.ui.screens
 
 import android.app.Activity
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -141,67 +142,73 @@ fun TermsAndConditionsScreen(navController: NavController, onAccept: () -> Unit)
 fun TermsAndConditionsScreenReadOnly() {
     val scrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(Color.White) // Set background to white
     ) {
-        Text(
-            text = "Terms and Conditions",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Text(
+                text = "Terms and Conditions",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = """
-                TERMS AND CONDITIONS OF THE VOTING APPLICATION
-
-                Welcome to the FREEvote! Application. By accessing and using this application, you signify that you have read and agree to comply with and be bound by these Terms and Conditions of Use. If you do not agree to these terms, you must exit the application immediately.
-
-                INTERPRETATION
-
-                The terms "FREEvote!", "we", "us", or "our" refer to the voting application.
-                The term "you" refers to the user of the voting application.
-
-                GENERAL DISCLAIMER
-
-                The FREEvote! application is provided for informational purposes only and aims to facilitate voting processes in a secure and accessible manner. We make no representations or warranties regarding the accuracy, completeness, or reliability of the information provided within this app. The use of this application is entirely at your own risk, and we are not liable for any damages arising from such use.
-
-                INTELLECTUAL PROPERTY RIGHTS
-
-                Unless otherwise indicated, all intellectual property rights, including text, design, graphics, and logos related to FREEvote! are owned by us. You may not reproduce or use any of these materials without our prior written consent.
-
-                TERMS OF USE
-
-                - You are granted a non-exclusive, non-transferable, revocable license to use this application strictly for personal, non-commercial purposes.
-                - You may not attempt to modify, decompile, or reverse-engineer the application code.
-
-                GUIDELINES FOR USER CONDUCT
-
-                - You agree to use the application only for lawful purposes and in accordance with these Terms.
-                - You agree not to interfere with or disrupt the application, including transmitting any viruses or harmful code.
-                - Any misuse of the application, including tampering with voting data or attempting to compromise the security of the system, will result in immediate termination of access and may lead to legal consequences.
-
-                PRIVACY STATEMENT
-
-                We are committed to protecting your privacy. Any personal information collected during the use of this application will be handled in accordance with applicable privacy laws and will not be shared without your consent.
-
-                MODIFICATIONS TO TERMS
-
-                FREEvote! reserves the right to modify these terms at any time. You will be notified of any changes, and by continuing to use the application, you agree to comply with and be bound by the updated terms.
-
-                CONTACT
-
-                For any questions or issues regarding these Terms and Conditions, please contact us through the support section of the application.
-            """.trimIndent(),
-            fontSize = 16.sp,
-            color = Color.Gray
-        )
+            Text(
+                text = """
+                    TERMS AND CONDITIONS OF THE VOTING APPLICATION
+    
+                    Welcome to the FREEvote! Application. By accessing and using this application, you signify that you have read and agree to comply with and be bound by these Terms and Conditions of Use. If you do not agree to these terms, you must exit the application immediately.
+    
+                    INTERPRETATION
+    
+                    The terms "FREEvote!", "we", "us", or "our" refer to the voting application.
+                    The term "you" refers to the user of the voting application.
+    
+                    GENERAL DISCLAIMER
+    
+                    The FREEvote! application is provided for informational purposes only and aims to facilitate voting processes in a secure and accessible manner. We make no representations or warranties regarding the accuracy, completeness, or reliability of the information provided within this app. The use of this application is entirely at your own risk, and we are not liable for any damages arising from such use.
+    
+                    INTELLECTUAL PROPERTY RIGHTS
+    
+                    Unless otherwise indicated, all intellectual property rights, including text, design, graphics, and logos related to FREEvote! are owned by us. You may not reproduce or use any of these materials without our prior written consent.
+    
+                    TERMS OF USE
+    
+                    - You are granted a non-exclusive, non-transferable, revocable license to use this application strictly for personal, non-commercial purposes.
+                    - You may not attempt to modify, decompile, or reverse-engineer the application code.
+    
+                    GUIDELINES FOR USER CONDUCT
+    
+                    - You agree to use the application only for lawful purposes and in accordance with these Terms.
+                    - You agree not to interfere with or disrupt the application, including transmitting any viruses or harmful code.
+                    - Any misuse of the application, including tampering with voting data or attempting to compromise the security of the system, will result in immediate termination of access and may lead to legal consequences.
+    
+                    PRIVACY STATEMENT
+    
+                    We are committed to protecting your privacy. Any personal information collected during the use of this application will be handled in accordance with applicable privacy laws and will not be shared without your consent.
+    
+                    MODIFICATIONS TO TERMS
+    
+                    FREEvote! reserves the right to modify these terms at any time. You will be notified of any changes, and by continuing to use the application, you agree to comply with and be bound by the updated terms.
+    
+                    CONTACT
+    
+                    For any questions or issues regarding these Terms and Conditions, please contact us through the support section of the application.
+                """.trimIndent(),
+                fontSize = 16.sp,
+                color = Color.Black
+            )
+        }
     }
 }
 
