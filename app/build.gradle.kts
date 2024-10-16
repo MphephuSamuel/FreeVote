@@ -68,27 +68,27 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3) // Ensure this is the latest
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.firebase.firestore)
-    implementation(libs.firebase.database)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0") // Update to the latest version
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0") // Update to the latest version
+    implementation(libs.firebase.firestore) // Ensure this is the latest
+    implementation(libs.firebase.database) // Ensure this is the latest
+    implementation(libs.kotlinx.coroutines.core) // Updated version
+    implementation(libs.kotlinx.coroutines.android) // Updated version
 
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("io.coil-kt:coil-compose:2.0.0")
-    implementation("androidx.compose.runtime:runtime-livedata:1.4.3")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation("com.itextpdf:itext7-core:7.2.3")
-    implementation(libs.firebase.auth.ktx)
-    testImplementation(libs.junit)
-    implementation("io.coil-kt:coil-compose:2.x.x") // Replace 2.x.x with the latest version
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.coil.compose) // Keep the latest version
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.itext7.core)
+    implementation(libs.firebase.auth.ktx) // Ensure this is the latest
+    testImplementation(libs.junit) // Check for updates
+    androidTestImplementation(libs.androidx.junit) // Check for updates
+    androidTestImplementation(libs.androidx.espresso.core) // Check for updates
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+

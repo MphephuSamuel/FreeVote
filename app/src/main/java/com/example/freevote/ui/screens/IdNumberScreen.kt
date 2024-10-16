@@ -70,7 +70,7 @@ import com.google.firebase.database.FirebaseDatabase
 fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
     // Display a dialog for connectivity issues if needed
     ConnectivityAlertDialog()
-    viewModel.resetAllVariables()
+    viewModel.resetOtherVariables()
     var idNumber = viewModel.idNumber
 
     val scrollState = rememberScrollState()
