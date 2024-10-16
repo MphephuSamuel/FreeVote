@@ -161,7 +161,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
             DeleteAccount(
 
                 navController = navController,
-                idNumber = idNumber
+                viewModel
             )
 
         }
@@ -174,12 +174,13 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
                 firestore = FirebaseFirestore.getInstance()
             )
         }
-456
+
         // Change PIN Screen Route
         composable("changePin") {
             ChangePinScreen(
-                navController = navController,
-                viewModel = MainViewModel() // Pass the appropriate ViewModel
+                modifier = Modifier,
+                navController,
+                viewModel // Pass the appropriate ViewModel
             )
         }
         composable(
@@ -189,7 +190,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
             val idNumber = backStackEntry.arguments?.getString("ID_NUMBER") ?: ""
             DeleteAccount(
                 navController = navController,
-                idNumber = idNumber // Pass the ID number
+                viewModel
             )
         }
         composable("webViewScreen/{url}") { backStackEntry ->

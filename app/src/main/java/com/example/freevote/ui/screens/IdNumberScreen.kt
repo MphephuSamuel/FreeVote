@@ -74,7 +74,7 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
     // Display a dialog for connectivity issues if needed
     ConnectivityAlertDialog()
 
-    var idNumber by remember { mutableStateOf(viewModel.idNumber) }
+    var idNumber = viewModel.idNumber
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) } // Loading state
@@ -193,7 +193,7 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                                                     if (isValidRealtime) {
                                                         // ID is valid in both, proceed to pin screen
                                                         isLoading = false
-                                                        navController.navigate("pinScreen/$id")
+                                                        navController.navigate("pinScreen/$idNumber")
                                                     } else {
 
                                                         // ID is only valid in Firestore, update the ViewModel and proceed to registration screen

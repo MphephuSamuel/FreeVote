@@ -1,5 +1,6 @@
 package com.example.freevote.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.freevote.viewmodel.MainViewModel
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -31,12 +33,15 @@ import com.google.firebase.database.FirebaseDatabase
 @Composable
 fun DeleteAccount(
     navController: NavController,
-    idNumber: String // Pass the ID number to the screen
+    viewModel: MainViewModel // Pass the ID number to the screen
 ) {
     val password = remember { mutableStateOf("") }
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
+
+    val idNumber = viewModel.idNumber // Fetch the ID number from the ViewModel
+    Log.d("DeleteAccount", "ID number fetched from ViewModel: $idNumber")
 
     Column(
         modifier = Modifier
@@ -52,7 +57,7 @@ fun DeleteAccount(
             modifier = Modifier.padding(bottom = 16.dp) // Space below the title
         )
 
-        // Password input
+        // Password input (PIN)
         TextField(
             value = password.value,
             onValueChange = { newValue ->
@@ -103,26 +108,30 @@ fun DeleteAccount(
 }
 
 // Function to delete user from both Firebase Authentication and Firebase Realtime Database
-private fun deleteUser(user: FirebaseUser, navController: NavController, context: android.content.Context, idNumber: String) {
-    val databaseRef = FirebaseDatabase.getInstance().getReference("users").child(idNumber) // Use idNumber here
+private fun deleteUser(user: FirebaseUser, navController: NavController, context: android.content.Context, idNumber: String?) {
+    if (idNumber != null) {
+        val databaseRef = FirebaseDatabase.getInstance().getReference("users").child(idNumber) // Use idNumber here
 
-    // First delete user data from Firebase Realtime Database
-    databaseRef.removeValue().addOnCompleteListener { dbTask ->
-        if (dbTask.isSuccessful) {
-            // After deleting user data, delete user from Firebase Authentication
-            user.delete().addOnCompleteListener { authTask ->
-                if (authTask.isSuccessful) {
-                    Toast.makeText(context, "Account deleted successfully.", Toast.LENGTH_SHORT).show()
-                    // Navigate to Login screen or any other screen
-                    navController.navigate("idNumberScreen")
-                } else {
-                    // Failed to delete user from Firebase Authentication
-                    Toast.makeText(context, "Failed to delete user from Firebase Authentication.", Toast.LENGTH_SHORT).show()
+        // First delete user data from Firebase Realtime Database
+        databaseRef.removeValue().addOnCompleteListener { dbTask ->
+            if (dbTask.isSuccessful) {
+                // After deleting user data, delete user from Firebase Authentication
+                user.delete().addOnCompleteListener { authTask ->
+                    if (authTask.isSuccessful) {
+                        Toast.makeText(context, "Account deleted successfully.", Toast.LENGTH_SHORT).show()
+                        // Navigate to Login screen or any other screen
+                        navController.navigate("idNumberScreen")
+                    } else {
+                        // Failed to delete user from Firebase Authentication
+                        Toast.makeText(context, "Failed to delete user from Firebase Authentication.", Toast.LENGTH_SHORT).show()
+                    }
                 }
+            } else {
+                // Failed to delete user data from Firebase Realtime Database
+                Toast.makeText(context, "Failed to delete user data from Realtime Database.", Toast.LENGTH_SHORT).show()
             }
-        } else {
-            // Failed to delete user data from Firebase Realtime Database
-            Toast.makeText(context, "Failed to delete user data from Realtime Database.", Toast.LENGTH_SHORT).show()
         }
+    } else {
+        Toast.makeText(context, "User ID not found. Cannot delete account.", Toast.LENGTH_SHORT).show()
     }
 }

@@ -1,6 +1,7 @@
 package com.example.freevote.ui.screens
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.example.freevote.R
 import com.example.freevote.viewmodel.MainViewModel
@@ -46,6 +48,7 @@ fun ChangePinScreen(
     val newPin = remember { mutableStateOf(TextFieldValue()) }
     val confirmPin = remember { mutableStateOf(TextFieldValue()) }
     val scrollState = rememberScrollState()
+    val idNumber = viewModel.idNumber
 
     Column(
         modifier = Modifier
@@ -139,7 +142,7 @@ fun ChangePinScreen(
             onClick = {
                 if (newPin.value.text == confirmPin.value.text) {
                     // Call the function to update the PIN
-                    updatePin(currentPin.value.text, newPin.value.text, context, navController)
+                    updatePin(currentPin.value.text, newPin.value.text, context, navController, idNumber)
                 } else {
                     Toast.makeText(context, "New PINs do not match", Toast.LENGTH_SHORT).show()
                 }
@@ -154,10 +157,10 @@ fun ChangePinScreen(
 }
 
 // Function to update the PIN (password) using reauthentication
-private fun updatePin(currentPin: String, newPin: String, context: Context, navController: NavController) {
+private fun updatePin(currentPin: String, newPin: String, context: Context, navController: NavController, idNumber: String) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val user = firebaseAuth.currentUser
-
+    Log.d("id numer in change ", idNumber)
     if (user != null) {
         // Reauthenticate user with the current PIN
         val credential = EmailAuthProvider.getCredential(user.email!!, currentPin)
@@ -168,7 +171,7 @@ private fun updatePin(currentPin: String, newPin: String, context: Context, navC
                 user.updatePassword(newPin).addOnCompleteListener { updateTask ->
                     if (updateTask.isSuccessful) {
                         Toast.makeText(context, "PIN updated successfully!", Toast.LENGTH_SHORT).show()
-                        navController.navigate("pinScreen") // Navigate after successful update
+                        navController.navigate("pinScreen/$idNumber")// Navigate after successful update
                     } else {
                         Toast.makeText(context, "Failed to update PIN: ${updateTask.exception?.message}", Toast.LENGTH_SHORT).show()
                     }
