@@ -1,7 +1,9 @@
 package com.example.freevote.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -216,7 +218,16 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
     val lowestPercentage = rankedCandidates.minOfOrNull { it.second } ?: 0f
 
     rankedCandidates.forEachIndexed { index, (candidate, percentage) ->
-        val votePercentage = percentage / 100
+
+        val targetProgress = percentage / 100
+        val animatedProgress by animateFloatAsState(
+            targetValue = targetProgress,
+            animationSpec = tween(
+                durationMillis = 1000, // Duration for smooth climbing effect
+                easing = FastOutSlowInEasing // Easing function for gradual start and finish
+            )
+        )
+
         val isLeader = percentage == highestPercentage
         val isLowest = percentage == lowestPercentage
 
@@ -258,7 +269,7 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                 }
 
                 LinearProgressIndicator(
-                    progress = animateFloatAsState(targetValue = votePercentage).value,
+                    progress = animatedProgress, // Smoothly animated progress
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(14.dp)
@@ -275,6 +286,7 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
         }
     }
 }
+
 
 // Function to shuffle candidates based on votes
 fun shuffleCandidates(candidates: List<CandidateVotes>): List<CandidateVotes> {
