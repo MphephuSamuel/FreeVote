@@ -5,6 +5,7 @@ package com.example.freevote.ui.screens
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -60,6 +61,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.runtime.LaunchedEffect
+import com.google.firebase.database.FirebaseDatabase
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,6 +76,23 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) } // Loading state
+
+    var isTestModeActive by remember { mutableStateOf(true) } // Default is true, assuming active initially
+
+    // Check Realtime Database for "active" field
+    LaunchedEffect(Unit) {
+        val testModeRef = FirebaseDatabase.getInstance().getReference("test_mode/active")
+        testModeRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                isTestModeActive = snapshot.getValue(Boolean::class.java) == true
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("Firebase", "Failed to fetch test mode status", error.toException())
+            }
+        })
+    }
+
 
     Column(
         modifier = Modifier
@@ -232,15 +252,12 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
         }
         // Row to place the TextField and Button horizontally
 
-
-
         // New Button for navigating to the link
-        // Place this after the existing "Get Testing Details" button
         Row(
             modifier = Modifier
                 .padding(top = 8.dp) // Add a little spacing from the previous components
                 .fillMaxWidth(), // Fill width
-            horizontalArrangement = Arrangement.SpaceBetween // Space them evenly
+            horizontalArrangement = if (isTestModeActive) Arrangement.SpaceBetween else Arrangement.Center // Adjust spacing if button is gone
         ) {
 
             // Button for navigating to the WebView
@@ -255,24 +272,27 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                 shape = RoundedCornerShape(0.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
             ) {
-                Text(" Not Sure? Click for Instructions", color = Color.Red) // Change text color if needed
+                Text("Not Sure? Click for Instructions", color = Color.Red) // Change text color if needed
             }
 
-            Spacer(modifier = Modifier.width(8.dp)) // Space between buttons
-            // Button for navigating to the link
-            Button(
-                onClick = {
-                    // Open the link
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://freevote-60cd6.web.app/"))
-                    context.startActivity(intent)
-                },
-                modifier = Modifier
-                    .weight(1f) // Allow this button to take equal space
-                    .height(57.dp), // Keep the height the same
-                shape = RoundedCornerShape(0.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
-            ) {
-                Text("Get Testing Details", color = Color.White) // Change text color if needed
+            if (isTestModeActive) {
+                Spacer(modifier = Modifier.width(8.dp)) // Space between buttons
+
+                // Button for navigating to the link
+                Button(
+                    onClick = {
+                        // Open the link
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://freevote-60cd6.web.app/"))
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier
+                        .weight(1f) // Allow this button to take equal space
+                        .height(57.dp), // Keep the height the same
+                    shape = RoundedCornerShape(0.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+                ) {
+                    Text("Get Testing Details", color = Color.White) // Change text color if needed
+                }
             }
         }
 
