@@ -4,20 +4,28 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -37,42 +45,49 @@ fun ChangePinScreen(
     val currentPin = remember { mutableStateOf(TextFieldValue()) }
     val newPin = remember { mutableStateOf(TextFieldValue()) }
     val confirmPin = remember { mutableStateOf(TextFieldValue()) }
+    val scrollState = rememberScrollState()
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp)
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // FREEvote! title
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "FREE",
-                fontSize = 60.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(end = 4.dp)
-            )
-            Text(
-                text = "vote",
-                fontSize = 50.sp,
-                color = Color.Red,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            Text(
-                text = "!",
-                fontSize = 60.sp,
-                color = Color(0xFF0E7609)
-            )
-        }
+        Text(
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.Black)) {
+                    append("FREE")
+                }
+                withStyle(style = SpanStyle(color = Color.Red)) {
+                    append("vote")
+                }
+                withStyle(style = SpanStyle(color = Color(0xFF006400))) {
+                    append("!")
+                }
+            },
+            fontFamily = rubikMoonrocksFont,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = 48.sp,
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(4f, 4f),
+                    blurRadius = 8f
+                )
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
 
-        // South African flag
+        Spacer(modifier = Modifier.height(26.dp))
+
         Image(
-            painter = painterResource(id = R.drawable.flag),
-            contentDescription = "South African Flag",
+            painter = painterResource(id = R.drawable.flag), // Make sure the drawable exists
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp)
-                .size(250.dp)
+                .height(250.dp)
         )
 
         Spacer(modifier = Modifier.height(30.dp))

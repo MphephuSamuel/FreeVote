@@ -1,7 +1,9 @@
 package com.example.freevote.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,60 +19,16 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.firebase.database.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
-fun countdown(
-    initialTime: Long,
-    onTimeChange: (Long) -> Unit,
-    onVotingEnd: () -> Unit
-) {
-    val scope = CoroutineScope(Dispatchers.Main)
-    scope.launch {
-        var remainingTime = initialTime
-        while (remainingTime > 0) {
-            delay(1000)
-            remainingTime -= 1000
-            onTimeChange(remainingTime)
-        }
-        onVotingEnd()
-    }
-}
 
 @Composable
 fun ResultsScreen(paddingValues: PaddingValues) {
     val scrollState = rememberScrollState()
-    var votingEndTime by remember { mutableStateOf(0L) }
-    var timeLeft by remember { mutableStateOf(0L) }
-    var isVotingActive by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        val database = FirebaseDatabase.getInstance().reference.child("voting_management")
-        database.child("votingEndTime").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                votingEndTime = snapshot.getValue(Long::class.java) ?: 0L
-                timeLeft = votingEndTime - System.currentTimeMillis() - 1000
-                if (timeLeft > 0) {
-                    countdown(
-                        initialTime = timeLeft,
-                        onTimeChange = { updatedTime -> timeLeft = updatedTime },
-                        onVotingEnd = { isVotingActive = false }
-                    )
-                } else {
-                    isVotingActive = false
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {}
-        })
-    }
 
     // Use Box to set a white background color
     Box(
@@ -86,33 +44,9 @@ fun ResultsScreen(paddingValues: PaddingValues) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (isVotingActive) {
-                CountdownTimer(timeLeft)
-            }
-
             FetchVotesFromFirebase()
         }
     }
-}
-
-
-@SuppressLint("DefaultLocale")
-@Composable
-fun CountdownTimer(timeLeft: Long) {
-    val hours = (timeLeft / 1000 / 60 / 60) % 24
-    val minutes = (timeLeft / 1000 / 60) % 60
-    val seconds = (timeLeft / 1000) % 60
-
-    val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
-
-    Text(
-        text = timeText,
-        style = MaterialTheme.typography.headlineLarge.copy(
-            fontWeight = FontWeight.Bold,
-            color = Color.Red
-        ),
-        modifier = Modifier.padding(16.dp)
-    )
 }
 
 data class CandidateVotes(val name: String, val votes: Int)
@@ -128,13 +62,16 @@ fun FetchVotesFromFirebase() {
 
         database.child("nationalCompensatoryVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val fetchedVotes = snapshot.children.map { dataSnapshot ->
-                    CandidateVotes(
-                        name = dataSnapshot.key.toString(),
-                        votes = dataSnapshot.value.toString().toInt()
-                    )
+                val fetchedVotes = snapshot.children.mapNotNull { dataSnapshot ->
+                    val name = dataSnapshot.key
+                    val votes = dataSnapshot.value?.toString()?.toIntOrNull()
+                    if (name != null && votes != null) {
+                        CandidateVotes(name = name, votes = votes)
+                    } else {
+                        null // Safeguard against null values
+                    }
                 }
-                nationalCompensatoryVotes = fetchedVotes
+                nationalCompensatoryVotes = shuffleCandidates(fetchedVotes)
             }
 
             override fun onCancelled(error: DatabaseError) {}
@@ -143,12 +80,15 @@ fun FetchVotesFromFirebase() {
         database.child("nationalRegionalVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val regionVotes = snapshot.children.associate { regionSnapshot ->
-                    regionSnapshot.key.toString() to regionSnapshot.children.map { candidateSnapshot ->
-                        CandidateVotes(
-                            name = candidateSnapshot.key.toString(),
-                            votes = candidateSnapshot.value.toString().toInt()
-                        )
-                    }
+                    regionSnapshot.key.toString() to regionSnapshot.children.mapNotNull { candidateSnapshot ->
+                        val name = candidateSnapshot.key
+                        val votes = candidateSnapshot.value?.toString()?.toIntOrNull()
+                        if (name != null && votes != null) {
+                            CandidateVotes(name = name, votes = votes)
+                        } else {
+                            null
+                        }
+                    }.let { shuffleCandidates(it) } // Shuffle candidates for the region
                 }
                 nationalRegionalVotes = regionVotes
             }
@@ -159,12 +99,15 @@ fun FetchVotesFromFirebase() {
         database.child("provincialLegislatureVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val legislatureVotes = snapshot.children.associate { regionSnapshot ->
-                    regionSnapshot.key.toString() to regionSnapshot.children.map { candidateSnapshot ->
-                        CandidateVotes(
-                            name = candidateSnapshot.key.toString(),
-                            votes = candidateSnapshot.value.toString().toInt()
-                        )
-                    }
+                    regionSnapshot.key.toString() to regionSnapshot.children.mapNotNull { candidateSnapshot ->
+                        val name = candidateSnapshot.key
+                        val votes = candidateSnapshot.value?.toString()?.toIntOrNull()
+                        if (name != null && votes != null) {
+                            CandidateVotes(name = name, votes = votes)
+                        } else {
+                            null
+                        }
+                    }.let { shuffleCandidates(it) } // Shuffle candidates for the region
                 }
                 provincialLegislatureVotes = legislatureVotes
             }
@@ -182,267 +125,188 @@ fun DisplayVoteResults(
     nationalRegionalVotes: Map<String, List<CandidateVotes>>,
     provincialLegislatureVotes: Map<String, List<CandidateVotes>>
 ) {
-    // Column fills the maximum size with a white background
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(0.dp)
-            .background(Color.White) // Set the overall background to white
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .background(Color(0xFFF5F5F5))
     ) {
-        // National Compensatory Votes Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp) // Optional padding to ensure the shadow is visible
-                .drawBehind {
-                    // Softer, brusher shadow appearance
-                    val shadowColor = Color.Black.copy(alpha = 0.2f) // More transparent shadow
-                    val cornerRadius = 12.dp.toPx() // Same corner radius as the card
+        DisplayVotesCard("National Compensatory Votes", nationalCompensatoryVotes)
 
-                    // Draw shadow all around the card by centering it around the card edges
-                    drawRoundRect(
-                        color = shadowColor,
-                        topLeft = Offset(x = -8.dp.toPx(), y = -8.dp.toPx()), // Move shadow up and left
-                        size = Size(
-                            width = this.size.width + 16.dp.toPx(), // Add shadow on both sides horizontally
-                            height = this.size.height + 16.dp.toPx() // Add shadow on both sides vertically
-                        ),
-                        cornerRadius = CornerRadius(cornerRadius),
-                      // Use Fill for a smoother gradient-like fill
-                    )
+        Spacer(modifier = Modifier.height(24.dp))
 
-                    // Add a second shadow layer for more depth (optional)
-                    drawRoundRect(
-                        color = shadowColor.copy(alpha = 0.1f), // Lighter second shadow
-                        topLeft = Offset(x = -4.dp.toPx(), y = -4.dp.toPx()), // Slightly smaller offset
-                        size = Size(
-                            width = this.size.width + 8.dp.toPx(), // Smaller size for a layered effect
-                            height = this.size.height + 8.dp.toPx()
-                        ),
-                        cornerRadius = CornerRadius(cornerRadius)
-                    )
-                },
-            shape = RoundedCornerShape(12.dp), // Match card shape with shadow corners
-            elevation = CardDefaults.cardElevation(0.dp), // Disable built-in elevation (we use custom shadow)
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White) // Ensure Box has a white background
-                    .padding(16.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "National Compensatory Votes",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    // Rank and display candidates
-                    DisplayProgressBarsForCategory(nationalCompensatoryVotes)
-                }
+        DisplayRegionalVotesCard(nationalRegionalVotes)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        DisplayRegionalVotesCard(provincialLegislatureVotes, "Provincial Legislature Votes")
+    }
+}
+
+@Composable
+fun DisplayVotesCard(title: String, votes: List<CandidateVotes>) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .drawBehind { drawCustomShadow() },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = Color(0xFF333333),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                DisplayProgressBarsForCategory(votes)
             }
         }
+    }
+}
 
-
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // National Regional Votes Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp) // Optional padding to ensure the shadow is visible
-                .drawBehind {
-                    // Softer, brusher shadow appearance
-                    val shadowColor = Color.Black.copy(alpha = 0.2f) // More transparent shadow
-                    val cornerRadius = 12.dp.toPx() // Same corner radius as the card
-
-                    // Draw shadow all around the card by centering it around the card edges
-                    drawRoundRect(
-                        color = shadowColor,
-                        topLeft = Offset(x = -8.dp.toPx(), y = -8.dp.toPx()), // Move shadow up and left
-                        size = Size(
-                            width = this.size.width + 16.dp.toPx(), // Add shadow on both sides horizontally
-                            height = this.size.height + 16.dp.toPx() // Add shadow on both sides vertically
-                        ),
-                        cornerRadius = CornerRadius(cornerRadius),
-                        // Use Fill for a smoother gradient-like fill
-                    )
-
-                    // Add a second shadow layer for more depth (optional)
-                    drawRoundRect(
-                        color = shadowColor.copy(alpha = 0.1f), // Lighter second shadow
-                        topLeft = Offset(x = -4.dp.toPx(), y = -4.dp.toPx()), // Slightly smaller offset
-                        size = Size(
-                            width = this.size.width + 8.dp.toPx(), // Smaller size for a layered effect
-                            height = this.size.height + 8.dp.toPx()
-                        ),
-                        cornerRadius = CornerRadius(cornerRadius)
-                    )
-                },
-            shape = RoundedCornerShape(12.dp), // Match card shape with shadow corners
-            elevation = CardDefaults.cardElevation(0.dp), // Disable built-in elevation (we use custom shadow)
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White) // Ensure Box has a white background
-                    .padding(16.dp)
-            ) {
-                Column {
+@Composable
+fun DisplayRegionalVotesCard(votes: Map<String, List<CandidateVotes>>, title: String = "National Regional Votes") {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .drawBehind { drawCustomShadow() },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = Color(0xFF333333),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                votes.forEach { (region, candidates) ->
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "National Regional Votes",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        text = "$region:",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = Color(0xFF666666)),
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    nationalRegionalVotes.forEach { (region, candidates) ->
-                        Text(
-                            text = "$region:",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                        // Rank and display candidates
-                        DisplayProgressBarsForCategory(candidates)
-                    }
-                }
-            }
-        }
-
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Provincial Legislature Votes Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp) // Optional padding to ensure the shadow is visible
-                .drawBehind {
-                    // Softer, brusher shadow appearance
-                    val shadowColor = Color.Black.copy(alpha = 0.2f) // More transparent shadow
-                    val cornerRadius = 12.dp.toPx() // Same corner radius as the card
-
-                    // Draw shadow all around the card by centering it around the card edges
-                    drawRoundRect(
-                        color = shadowColor,
-                        topLeft = Offset(x = -8.dp.toPx(), y = -8.dp.toPx()), // Move shadow up and left
-                        size = Size(
-                            width = this.size.width + 16.dp.toPx(), // Add shadow on both sides horizontally
-                            height = this.size.height + 16.dp.toPx() // Add shadow on both sides vertically
-                        ),
-                        cornerRadius = CornerRadius(cornerRadius),
-                        // Use Fill for a smoother gradient-like fill
-                    )
-
-                    // Add a second shadow layer for more depth (optional)
-                    drawRoundRect(
-                        color = shadowColor.copy(alpha = 0.1f), // Lighter second shadow
-                        topLeft = Offset(x = -4.dp.toPx(), y = -4.dp.toPx()), // Slightly smaller offset
-                        size = Size(
-                            width = this.size.width + 8.dp.toPx(), // Smaller size for a layered effect
-                            height = this.size.height + 8.dp.toPx()
-                        ),
-                        cornerRadius = CornerRadius(cornerRadius)
-                    )
-                },
-            shape = RoundedCornerShape(12.dp), // Match card shape with shadow corners
-            elevation = CardDefaults.cardElevation(0.dp), // Disable built-in elevation (we use custom shadow)
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Keep card transparent
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White) // Ensure Box has a white background
-                    .padding(16.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "Provincial Legislature Votes",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    provincialLegislatureVotes.forEach { (region, candidates) ->
-                        Text(
-                            text = "$region:",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                        // Rank and display candidates
-                        DisplayProgressBarsForCategory(candidates)
-                    }
+                    DisplayProgressBarsForCategory(candidates)
                 }
             }
         }
     }
 }
 
-
 @Composable
 fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
-    // Calculate total votes
     val totalVotes = candidateVotes.sumOf { it.votes }
 
-    // Create a list of candidates with their vote percentage and rank
+    // Calculate candidate percentages and sort
     val rankedCandidates = candidateVotes.map { candidate ->
         val votePercentage = if (totalVotes > 0) candidate.votes.toFloat() / totalVotes else 0f
         candidate to (votePercentage * 100)
-    }.sortedByDescending { it.second } // Sort by vote percentage
+    }.sortedByDescending { it.second }
 
-    // Find the highest and lowest percentages
+    // Get highest and lowest vote percentages
     val highestPercentage = rankedCandidates.maxOfOrNull { it.second } ?: 0f
     val lowestPercentage = rankedCandidates.minOfOrNull { it.second } ?: 0f
 
-    // Display each ranked candidate
-    rankedCandidates.forEach { (candidate, percentage) ->
-        val votePercentage = percentage / 100 // Convert percentage back to a decimal for progress bar
+    rankedCandidates.forEachIndexed { index, (candidate, percentage) ->
+        val votePercentage = percentage / 100
+        val isLeader = percentage == highestPercentage
+        val isLowest = percentage == lowestPercentage
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .shadow(2.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                .padding(vertical = 6.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .shadow(3.dp)
+                .border(
+                    width = 2.dp,
+                    color = if (isLeader) Color(0xFF4CAF50) else Color(0xFF000000),
+                    shape = RoundedCornerShape(16.dp)
+                ),
+            colors = CardDefaults.cardColors(containerColor = if (isLeader) Color(0xFFE0F7FA) else Color(0xFFE0E0E0))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
+                    .padding(12.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(), // Ensure the row takes the full width
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    BasicText(
+                    Text(
                         text = candidate.name,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                        color = Color(0xFF333333)
                     )
-
-                    BasicText(
-                        text = String.format("%.2f%%", percentage),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 8.dp) // Optional: Add space to the start of this text
+                    Text(
+                        text = "${candidate.votes} votes (${String.format("%.2f%%", percentage)})",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = if (isLeader) FontWeight.Bold else FontWeight.Normal
+                        ),
+                        color = Color(0xFF4F4F4F)
                     )
                 }
-                // Progress bar showing percentage of votes with custom styling
+
                 LinearProgressIndicator(
-                    progress = votePercentage,
+                    progress = animateFloatAsState(targetValue = votePercentage).value,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(12.dp) // Slightly increased height for better visibility
-                        .clip(RoundedCornerShape(12.dp)) // Add rounded corners
-                        .background(Color.LightGray.copy(alpha = 0.2f)), // Background color for unfilled part
-                    color = when (percentage) {
-                        highestPercentage -> Color(0xFF4CAF50) // Green for highest percentage
-                        lowestPercentage -> Color(0xFFF44336) // Red for lowest percentage
-                        else -> Color.Yellow // Yellow for the rest
+                        .height(14.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFFFFFFF)),
+                    color = when {
+                        isLeader -> Color(0xFF4CAF50)
+                        isLowest -> Color(0xFFF44336)
+                        else -> Color(0xFFFFC107)
                     },
-                    trackColor = Color.Gray.copy(alpha = 0.3f)  // Track color for the unfilled portion
+                    trackColor = Color(0xFFFFFFFF).copy(alpha = 0.3f),
                 )
             }
         }
     }
 }
 
+// Function to shuffle candidates based on votes
+fun shuffleCandidates(candidates: List<CandidateVotes>): List<CandidateVotes> {
+    return candidates.sortedBy { it.votes }.shuffled() // Sort first (if needed) and then shuffle
+}
+
+
+
+
+fun DrawScope.drawCustomShadow() {
+    val shadowColor = Color.Black.copy(alpha = 0.2f)
+    val cornerRadius = 12.dp.toPx()
+
+    // Draw shadow all around the card
+    drawRoundRect(
+        color = shadowColor,
+        topLeft = Offset(x = -8.dp.toPx(), y = -8.dp.toPx()),
+        size = Size(
+            width = this.size.width + 16.dp.toPx(),
+            height = this.size.height + 16.dp.toPx()
+        ),
+        cornerRadius = CornerRadius(cornerRadius)
+    )
+
+    // Add a second shadow layer for more depth
+    drawRoundRect(
+        color = shadowColor.copy(alpha = 0.1f),
+        topLeft = Offset(x = -4.dp.toPx(), y = -4.dp.toPx()),
+        size = Size(
+            width = this.size.width + 8.dp.toPx(),
+            height = this.size.height + 8.dp.toPx()
+        ),
+        cornerRadius = CornerRadius(cornerRadius)
+    )
+}

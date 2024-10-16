@@ -30,6 +30,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
 @Composable
@@ -304,11 +306,21 @@ fun QueryItem(idNumber: String, query: String) {
         }
     }
 }
+fun formatRespondedAt(respondedAt: Long): String {
+    // Create a SimpleDateFormat object for the desired format
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
+    // Convert the Long timestamp to a Date object
+    val date = Date(respondedAt)
+
+    // Format the Date object to a string
+    return dateFormat.format(date)
+}
 
 
 @Composable
 fun ResponseItem(response: UserResponse) {
+    val formattedDate = formatRespondedAt(response.respondedAt)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -331,7 +343,7 @@ fun ResponseItem(response: UserResponse) {
                 modifier = Modifier.padding(top = 4.dp)
             )
             Text(
-                text = "Responded at: ${response.respondedAt}",
+                text = "Responded at: $formattedDate",
                 fontSize = 12.sp,
                 color = Color(0xFF888888),
                 modifier = Modifier.padding(top = 2.dp)

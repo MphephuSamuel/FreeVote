@@ -346,8 +346,12 @@ fun VoteDropdownMenu(selectedProvince: String?) {
             onDismissRequest = { expandedNationalVote = false },
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
-                .border(1.dp, Color.Gray)
+                .background(Color(0xff04a0df))
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(Color(0xff04a0df), Color.White)
+                    )
+                )
                 .padding(8.dp)
         ) {
             nationalOptions.forEachIndexed { index, option ->
@@ -430,7 +434,7 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                 .background(Color(0xff04a0df))
                 .background(
                     brush = Brush.linearGradient(
-                        colors = listOf(Color(0xff04a0df), Color.White)
+                        colors = listOf(Color(0xFFFF7F50), Color.White)
                     )
                 )
                 .padding(8.dp)
@@ -510,7 +514,7 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                 .background(Color(0xff04a0df))
                 .background(
                     brush = Brush.linearGradient(
-                        colors = listOf(Color(0xff04a0df), Color.White)
+                        colors = listOf(Color(0xffcc3366), Color.White)
                     )
                 )
                 .padding(8.dp)

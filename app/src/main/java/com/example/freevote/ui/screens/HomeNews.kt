@@ -1,8 +1,10 @@
 package com.example.freevote.ui.screens
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -59,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
@@ -93,6 +96,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 import com.example.freevote.ui.screens.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 
 // MainActivity
@@ -284,45 +289,52 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(
-                            text = buildAnnotatedString {
-                                withStyle(style = SpanStyle(color = Color.Black)) {
-                                    append("FREE")
-                                }
-                                withStyle(style = SpanStyle(color = Color.Red)) {
-                                    append("vote")
-                                }
-                                withStyle(style = SpanStyle(color = Color(0xFF006400))) {
-                                    append("!")
-                                }
-                            },
-                            fontFamily = rubikMoonrocksFont,
-                            style = MaterialTheme.typography.headlineLarge.copy(
-                                fontSize = 48.sp,
-                                shadow = Shadow(
-                                    color = Color.Black,
-                                    offset = Offset(4f, 4f),
-                                    blurRadius = 8f
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically, // Align items vertically centered in the Row
+                            horizontalArrangement = Arrangement.SpaceBetween // Ensures title and timer are spaced apart
+                        ) {
+                            // Title "FREEvote!"
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(color = Color.Black)) {
+                                        append("FREE")
+                                    }
+                                    withStyle(style = SpanStyle(color = Color.Red)) {
+                                        append("vote")
+                                    }
+                                    withStyle(style = SpanStyle(color = Color(0xFF006400))) {
+                                        append("!")
+                                    }
+                                },
+                                fontFamily = rubikMoonrocksFont,
+                                style = MaterialTheme.typography.headlineLarge.copy(
+                                    fontSize = 48.sp,
+                                    shadow = Shadow(
+                                        color = Color.Black,
+                                        offset = Offset(4f, 4f),
+                                        blurRadius = 8f
+                                    )
                                 )
-                            ),
-                            modifier = Modifier.padding(16.dp)
-                        )
+                            )
+                            TimerScreenTopBar(modifier = Modifier)
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu")
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White
-                    )
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
                 )
             },
-            bottomBar = { BottomNavigationBar(navController1=navController1,navController = navController) },
+            bottomBar = { BottomNavigationBar(navController1 = navController1, navController = navController) },
             content = { paddingValues ->
                 NavigationContent(navController1 = navController1, paddingValues = paddingValues)
             }
         )
+
+
     }
 }
 
@@ -366,7 +378,11 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
             }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.ThumbUp, contentDescription = "Vote") },
+            icon = { Image(
+                painter = painterResource(id = R.drawable.vote_icon), // Replace with your drawable resource
+                contentDescription = "Vote",
+                modifier = Modifier.size(25.dp)
+            ) },
             label = { Text("Vote") },
             selected = false,
             onClick = {
@@ -508,6 +524,182 @@ fun PrivacyScreen(onBackClick: () -> Unit, modifier: Modifier) {
         }
     }
 }
+// Function to start the countdown
+fun countdown(
+    initialTime: Long,
+    onTimeChange: (Long) -> Unit,
+    onVotingEnd: () -> Unit
+) {
+    val scope = CoroutineScope(Dispatchers.Main)
+    scope.launch {
+        var remainingTime = initialTime
+        while (remainingTime > 0) {
+            delay(1000)
+            remainingTime -= 1000
+            onTimeChange(remainingTime)
+        }
+        onVotingEnd()
+    }
+}
+
+// Updated TimerScreen to receive a modifier argument
+@Composable
+fun TimerScreen(modifier: Modifier = Modifier) {
+    var votingEndTime by remember { mutableStateOf(0L) }
+    var timeLeft by remember { mutableStateOf(0L) }
+    var isVotingAllowed by remember { mutableStateOf(false) }
+    var isVotingActive by remember { mutableStateOf(false) }
+
+    // Listen for changes in Firebase data
+    FirebaseVotingEndTime { endTime, votingAllowed ->
+        votingEndTime = endTime
+        timeLeft = votingEndTime - System.currentTimeMillis()
+        isVotingAllowed = votingAllowed
+
+        // If voting is allowed and the end time is in the future, start the countdown
+        if (isVotingAllowed && timeLeft > 0) {
+            countdown(
+                initialTime = timeLeft,
+                onTimeChange = { updatedTime ->
+                    timeLeft = updatedTime
+                    Log.d("Timer", "Time left: $timeLeft ms")
+                },
+                onVotingEnd = {
+                    isVotingActive = false
+                    Log.d("Timer", "Voting ended.")
+                }
+            )
+            isVotingActive = true
+        } else {
+            isVotingActive = false
+            Log.d("Timer", "Voting is not active or countdown expired.")
+        }
+    }
+
+    // Only show the countdown if voting is allowed and active
+    if (isVotingAllowed && isVotingActive) {
+        CountdownTimer(timeLeft, modifier)  // Display the countdown timer
+    } else {
+        Log.d("Timer", "Voting is either not allowed or inactive.")
+    }
+}
+
+
+// CountdownTimer function now applies the modifier received
+@Composable
+fun CountdownTimer(timeLeft: Long, modifier: Modifier = Modifier) {
+    val hours = (timeLeft / 1000 / 60 / 60) % 24
+    val minutes = (timeLeft / 1000 / 60) % 60
+    val seconds = (timeLeft / 1000) % 60
+
+    val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Voting ends in:",
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontSize = 18.sp,
+                color = Color.Gray
+            )
+        )
+        Text(
+            text = timeText,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontWeight = FontWeight.Bold,
+                color = Color.Green,
+                fontSize = 28.sp // Larger font size for emphasis
+            ),
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+
+}
+@Composable
+fun CountdownTimerTopBar(timeLeft: Long, modifier: Modifier = Modifier) {
+    val hours = (timeLeft / 1000 / 60 / 60) % 24
+    val minutes = (timeLeft / 1000 / 60) % 60
+    val seconds = (timeLeft / 1000) % 60
+
+    val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    Text(
+        text = timeText,
+        style = MaterialTheme.typography.headlineLarge.copy(
+            fontWeight = FontWeight.Bold,
+            color = Color.Green,
+            fontSize = 16.sp // Larger font size for emphasis
+        ),
+        modifier = Modifier.padding(top = 8.dp).background(Color.Black)
+    )
+}
+
+@Composable
+fun TimerScreenTopBar(modifier: Modifier = Modifier) {
+    var votingEndTime by remember { mutableStateOf(0L) }
+    var timeLeft by remember { mutableStateOf(0L) }
+    var isVotingAllowed by remember { mutableStateOf(false) }
+    var isVotingActive by remember { mutableStateOf(false) }
+
+    // Listen for changes in Firebase data
+    FirebaseVotingEndTime { endTime, votingAllowed ->
+        votingEndTime = endTime
+        timeLeft = votingEndTime - System.currentTimeMillis()
+        isVotingAllowed = votingAllowed
+
+        // If voting is allowed and the end time is in the future, start the countdown
+        if (isVotingAllowed && timeLeft > 0) {
+            countdown(
+                initialTime = timeLeft,
+                onTimeChange = { updatedTime ->
+                    timeLeft = updatedTime
+                    Log.d("Timer", "Time left: $timeLeft ms")
+                },
+                onVotingEnd = {
+                    isVotingActive = false
+                    Log.d("Timer", "Voting ended.")
+                }
+            )
+            isVotingActive = true
+        } else {
+            isVotingActive = false
+            Log.d("Timer", "Voting is not active or countdown expired.")
+        }
+    }
+
+    // Only show the countdown if voting is allowed and active
+    if (isVotingAllowed && isVotingActive) {
+        CountdownTimerTopBar(timeLeft, modifier)  // Display the countdown timer
+    } else {
+        Log.d("Timer", "Voting is either not allowed or inactive.")
+    }
+}
+@Composable
+fun FirebaseVotingEndTime(onDataFetched: (Long, Boolean) -> Unit) {
+    val database = FirebaseDatabase.getInstance().reference.child("voting_management")
+
+    LaunchedEffect(Unit) {
+        database.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Fetch voting end time and isVotingAllowed flag
+                val votingEndTime = snapshot.child("votingEndTime").getValue(Long::class.java) ?: 0L
+                val isVotingAllowed = snapshot.child("isVotingAllowed").getValue(Boolean::class.java) ?: false
+
+                // Pass the fetched data to the composable function
+                onDataFetched(votingEndTime, isVotingAllowed)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("Firebase", "Error fetching voting data: ${error.message}")
+            }
+        })
+    }
+}
+
+
+@SuppressLint("DefaultLocale")
 
 @Composable
 fun HomeScreen(paddingValues: PaddingValues) {
@@ -521,6 +713,7 @@ fun HomeScreen(paddingValues: PaddingValues) {
     }
 
     val scrollState = rememberScrollState()
+    // Countdown Timer (no padding needed to avoid vertical stacking)
 
     Column(
         modifier = Modifier
@@ -531,6 +724,7 @@ fun HomeScreen(paddingValues: PaddingValues) {
         horizontalAlignment = Alignment.CenterHorizontally // Centers the content horizontally
     ) {
         val customFont = FontFamily(Font(R.font.rubix))
+        TimerScreen(modifier = Modifier)
 
         // *** News Section ***
         Text(
@@ -872,14 +1066,13 @@ fun VoteSlideshow(
 ) {
     val sections = listOf(
         "National Compensatory Votes" to nationalCompensatoryVotes.takeTop5(),
-        "National Regional Votes" to nationalRegionalVotes.flattenToTop5(),
-        "Provincial Legislature Votes" to provincialLegislatureVotes.flattenToTop5()
+        "National Regional Votes" to nationalRegionalVotes,
+        "Provincial Legislature Votes" to provincialLegislatureVotes
     )
 
-    // State to keep track of current slide
     var currentSectionIndex by remember { mutableStateOf(0) }
 
-    // Timer to automatically switch slides every few seconds
+    // Automatically switch slides every few seconds
     LaunchedEffect(Unit) {
         while (true) {
             kotlinx.coroutines.delay(3000) // Change slide every 3 seconds
@@ -887,7 +1080,7 @@ fun VoteSlideshow(
         }
     }
 
-    // Display current slide
+    // Get current section
     val currentSection = sections[currentSectionIndex]
     Column(
         modifier = Modifier
@@ -901,10 +1094,27 @@ fun VoteSlideshow(
             modifier = Modifier.padding(8.dp)
         )
 
-        // Display progress bars for candidates
-        DisplayProgressBarsForCategory(currentSection.second)
+        // Handle top 5 display for different sections
+        when (currentSection.second) {
+            is List<*> -> {
+                // National Compensatory Votes (List of candidates)
+                DisplayProgressBarsForCategory(currentSection.second as List<CandidateVotes>)
+            }
+            is Map<*, *> -> {
+                // National Regional or Provincial Legislature Votes (Map of provinces to candidates)
+                (currentSection.second as Map<String, List<CandidateVotes>>).forEach { (region, votes) ->
+                    Text(
+                        text = region,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    DisplayProgressBarsForCategory(votes.takeTop5())  // Show top 5 for each region
+                }
+            }
+        }
     }
 }
+
 @Composable
 fun DisplayCandidateVoteCard(candidateVotes: CandidateVotes) {
     // Calculate total votes dynamically from the passed candidate votes
