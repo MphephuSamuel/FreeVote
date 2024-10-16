@@ -50,108 +50,86 @@ fun ChangePinScreen(
     val scrollState = rememberScrollState()
     val idNumber = viewModel.idNumber
 
-    Column(
-        modifier = Modifier
+    Box(
+        modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
     ) {
-        // FREEvote! title
-        Text(
-            text = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color.Black)) {
-                    append("FREE")
-                }
-                withStyle(style = SpanStyle(color = Color.Red)) {
-                    append("vote")
-                }
-                withStyle(style = SpanStyle(color = Color(0xFF006400))) {
-                    append("!")
-                }
-            },
-            fontFamily = rubikMoonrocksFont,
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontSize = 48.sp,
-                shadow = Shadow(
-                    color = Color.Black,
-                    offset = Offset(4f, 4f),
-                    blurRadius = 8f
-                )
-            ),
-            modifier = Modifier.padding(16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(26.dp))
-
-        Image(
-            painter = painterResource(id = R.drawable.flag), // Make sure the drawable exists
-            contentDescription = null,
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-        )
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        // Current PIN Input Field
-        TextField(
-            value = currentPin.value,
-            onValueChange = { newValue -> currentPin.value = newValue },
-            label = { Text("Current PIN") },
-            modifier = Modifier.height(57.dp),
-            colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
-            shape = RoundedCornerShape(0.dp),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // New PIN Input Field
-        TextField(
-            value = newPin.value,
-            onValueChange = { newValue -> newPin.value = newValue },
-            label = { Text("New PIN") },
-            modifier = Modifier.height(57.dp),
-            colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
-            shape = RoundedCornerShape(0.dp),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Confirm New PIN Input Field
-        TextField(
-            value = confirmPin.value,
-            onValueChange = { newValue -> confirmPin.value = newValue },
-            label = { Text("Confirm New PIN") },
-            modifier = Modifier.height(57.dp),
-            colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
-            shape = RoundedCornerShape(0.dp),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Update PIN Button
-        Button(
-            onClick = {
-                if (newPin.value.text == confirmPin.value.text) {
-                    // Call the function to update the PIN
-                    updatePin(currentPin.value.text, newPin.value.text, context, navController, idNumber)
-                } else {
-                    Toast.makeText(context, "New PINs do not match", Toast.LENGTH_SHORT).show()
-                }
-            },
-            modifier = Modifier.fillMaxWidth().height(57.dp),
-            shape = RoundedCornerShape(0.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Update PIN")
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Current PIN Input Field
+            TextField(
+                value = currentPin.value,
+                onValueChange = { newValue -> currentPin.value = newValue },
+                label = { Text("Current PIN") },
+                modifier = Modifier.height(57.dp),
+                colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
+                shape = RoundedCornerShape(0.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                visualTransformation = PasswordVisualTransformation()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // New PIN Input Field
+            TextField(
+                value = newPin.value,
+                onValueChange = { newValue -> newPin.value = newValue },
+                label = { Text("New PIN") },
+                modifier = Modifier.height(57.dp),
+                colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
+                shape = RoundedCornerShape(0.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                visualTransformation = PasswordVisualTransformation()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Confirm New PIN Input Field
+            TextField(
+                value = confirmPin.value,
+                onValueChange = { newValue -> confirmPin.value = newValue },
+                label = { Text("Confirm New PIN") },
+                modifier = Modifier.height(57.dp),
+                colors = TextFieldDefaults.textFieldColors(containerColor = Color(0xFFF1A911)),
+                shape = RoundedCornerShape(0.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                visualTransformation = PasswordVisualTransformation()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Update PIN Button
+            Button(
+                onClick = {
+                    if (newPin.value.text == confirmPin.value.text) {
+                        // Call the function to update the PIN
+                        updatePin(
+                            currentPin.value.text,
+                            newPin.value.text,
+                            context,
+                            navController,
+                            idNumber
+                        )
+                    } else {
+                        Toast.makeText(context, "New PINs do not match", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(57.dp),
+                shape = RoundedCornerShape(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7609))
+            ) {
+                Text("Update PIN")
+            }
         }
     }
 }
