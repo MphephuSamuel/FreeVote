@@ -16,7 +16,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.freevote.ui.screens.*
-import com.example.myapplication.IdNumberScreen
 import com.example.myproject1.ui.theme.FreeVoteTheme
 import com.example.freevote.viewmodel.MainViewModel
 import com.google.firebase.firestore.FirebaseFirestore

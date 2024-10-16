@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package com.example.myapplication
+package com.example.freevote.ui.screens
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -61,20 +61,15 @@ import java.util.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
-val rubikMoonrocksFont = FontFamily(
-    Font(
-        resId = R.font.rubik_moonrocks, // Ensure the font file exists in res/font
-        weight = FontWeight.Normal
-    )
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
     // Display a dialog for connectivity issues if needed
     ConnectivityAlertDialog()
-
+    viewModel.resetAllVariables()
     var idNumber = viewModel.idNumber
+
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) } // Loading state

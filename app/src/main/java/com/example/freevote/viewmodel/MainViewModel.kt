@@ -70,4 +70,15 @@ class MainViewModel : ViewModel() {
         pinChange = ""
         confirm = ""
     }
+    fun resetOtherVariables() {
+        lName = ""
+        names = ""
+        phoneNumber = ""
+        email = ""
+        gender = ""
+        address = ""// Set to null since it's of type String?
+        pinCode = ""
+        pinChange = ""
+        confirm = ""
+    }
 }
