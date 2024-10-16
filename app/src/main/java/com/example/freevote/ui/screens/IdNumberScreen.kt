@@ -229,7 +229,7 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                             Icons.Filled.ArrowForward,
                             contentDescription = null,
                             tint = White,
-                            modifier = Modifier.size(150.dp) // Set the icon size
+                            modifier = Modifier.size(200.dp) // Set the icon size
                         )
                     }
                 }
