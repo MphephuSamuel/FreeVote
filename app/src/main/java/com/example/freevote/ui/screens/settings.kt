@@ -393,55 +393,95 @@ fun NotificationScreen(onBackClick: () -> Unit, modifier: Modifier) {
             .padding(16.dp),
         horizontalAlignment = Alignment.Start
     ) {
+        // Back button
         IconButton(onClick = onBackClick) {
             Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
         }
 
-        Text(text = "Notifications", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+        // Title and clear all button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Notifications", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+
+            // Button to clear all notifications
+            TextButton(onClick = {
+                // Clear all notifications from Firebase
+                database.removeValue().addOnSuccessListener {
+                    notifications.clear() // Clear locally after successful deletion
+                }.addOnFailureListener {
+                    Log.e("NotificationScreen", "Error clearing notifications: ${it.message}")
+                }
+            }) {
+                Text(text = "Clear All", color = Color.Red)
+            }
+        }
 
         // Display notifications
         if (notifications.isEmpty()) {
             Text(text = "No notifications available", fontSize = 16.sp)
         } else {
             notifications.forEach { notification ->
-                NotificationItem(notification)
+                NotificationItem(notification, onDeleteClick = { notificationId ->
+                    // Delete specific notification from Firebase
+                    database.child(notificationId).removeValue().addOnSuccessListener {
+                        notifications.removeIf { it.id == notificationId } // Remove locally
+                    }.addOnFailureListener {
+                        Log.e("NotificationScreen", "Error deleting notification: ${it.message}")
+                    }
+                })
             }
         }
     }
 }
 
 @Composable
-fun NotificationItem(notification: Notification) {
+fun NotificationItem(notification: Notification, onDeleteClick: (String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clickable { /* Handle notification click */ }
             .background(Color(0xFFF0F9E8)), // Light green background
-        // Elevation for depth
-        shape = RoundedCornerShape(12.dp) // Rounded corners for a modern look
+        shape = RoundedCornerShape(12.dp)
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = notification.title,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333) // Dark text for better contrast
-            )
-            Text(
-                text = notification.message,
-                fontSize = 14.sp,
-                color = Color(0xFF555555), // Softer text color for the message
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = notification.title,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333) // Dark text for better contrast
+                    )
+                    Text(
+                        text = notification.message,
+                        fontSize = 14.sp,
+                        color = Color(0xFF555555), // Softer text color for the message
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
+                // Delete button for the specific notification
+                IconButton(onClick = { onDeleteClick(notification.id) }) {
+                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                }
             }
         }
+    }
 }
 
 data class Notification(
+    val id: String ="",
     val title: String = "",
     val message: String = ""
 )
