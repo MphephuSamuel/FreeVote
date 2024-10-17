@@ -6,12 +6,14 @@ import android.widget.CalendarView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,7 +49,7 @@ fun Calender() {
         "26/12" to "Day of Goodwill"
     )
 
-    Column(modifier = Modifier.padding(top = 100.dp)) {
+    Column(modifier = Modifier.padding(top = 100.dp).background(Color.White)) {
         // Button to open DatePickerDialog
         Button(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
             Text("Select Date using DatePickerDialog")

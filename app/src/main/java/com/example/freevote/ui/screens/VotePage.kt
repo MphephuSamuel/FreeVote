@@ -363,10 +363,10 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            // Party logo
+                            // Party leader image
                             Image(
-                                painter = rememberImagePainter(option.logoUrl),
-                                contentDescription = "Party Logo",
+                                painter = rememberImagePainter(option.leaderFaceUrl),
+                                contentDescription = "Party Leader",
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
@@ -380,14 +380,15 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                                 Text(text = option.name, fontWeight = FontWeight.Bold)
                                 Text(text = option.abbreviation, color = Color.Gray)
                             }
-                            // Party leader image
+                            // Party logo
                             Image(
-                                painter = rememberImagePainter(option.leaderFaceUrl),
-                                contentDescription = "Party Leader",
+                                painter = rememberImagePainter(option.logoUrl),
+                                contentDescription = "Party Logo",
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
                             )
+
                             CrossCheckbox(
                                 checked = option.name == selectedNational?.name, // Compare option.name with selectedNational?.name
                                 onCheckedChange = { isChecked ->
@@ -448,14 +449,15 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            // Party logo
+                            // Party leader image
                             Image(
-                                painter = rememberImagePainter(option.logoUrl),
-                                contentDescription = "Party Logo",
+                                painter = rememberImagePainter(option.leaderFaceUrl),
+                                contentDescription = "Party Leader",
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
                             )
+
                             // Party details
                             Column(
                                 modifier = Modifier
@@ -465,14 +467,15 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                                 Text(text = option.name, fontWeight = FontWeight.Bold)
                                 Text(text = option.abbreviation, color = Color.Gray)
                             }
-                            // Party leader image
+                            // Party logo
                             Image(
-                                painter = rememberImagePainter(option.leaderFaceUrl),
-                                contentDescription = "Party Leader",
+                                painter = rememberImagePainter(option.logoUrl),
+                                contentDescription = "Party Logo",
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
                             )
+
                             CrossCheckbox(
                                 checked = option.name == selectedRegional?.name,
                                 onCheckedChange = { isChecked ->
@@ -528,14 +531,15 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            // Party logo
+                            // Party leader image
                             Image(
-                                painter = rememberImagePainter(option.logoUrl),
-                                contentDescription = "Party Logo",
+                                painter = rememberImagePainter(option.leaderFaceUrl),
+                                contentDescription = "Party Leader",
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
                             )
+
                             // Party details
                             Column(
                                 modifier = Modifier
@@ -545,14 +549,15 @@ fun VoteDropdownMenu(selectedProvince: String?) {
                                 Text(text = option.name, fontWeight = FontWeight.Bold)
                                 Text(text = option.abbreviation, color = Color.Gray)
                             }
-                            // Party leader image
+                            // Party logo
                             Image(
-                                painter = rememberImagePainter(option.leaderFaceUrl),
-                                contentDescription = "Party Leader",
+                                painter = rememberImagePainter(option.logoUrl),
+                                contentDescription = "Party Logo",
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
                             )
+
                             CrossCheckbox(
                                 checked = option.name == selectedProvincial?.name,
                                 onCheckedChange = { isChecked ->

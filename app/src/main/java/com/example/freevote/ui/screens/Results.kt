@@ -313,12 +313,6 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Load the party logo
-                    Image(
-                        painter = rememberImagePainter(candidate.partyLogoUrl),
-                        contentDescription = "Party Logo",
-                        modifier = Modifier.size(40.dp) // Adjust size as needed
-                    )
                     Text(
                         text = candidate.name,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
@@ -332,21 +326,39 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                         color = Color(0xFF4F4F4F)
                     )
                 }
+                Row(
+                    modifier = Modifier.fillMaxWidth(), // Make Row fill the available width
+                    verticalAlignment = Alignment.CenterVertically // Align items vertically in the center
+                ) {
+                    // Party Logo Image
+                    Image(
+                        painter = rememberImagePainter(candidate.partyLogoUrl),
+                        contentDescription = "Party Logo",
+                        modifier = Modifier
+                            .size(30.dp) // Adjust size as needed (smaller size)
+                            .aspectRatio(1f) // Force the aspect ratio to 1:1
+                            .clip(CircleShape) // Clip to a circle
+                    )
 
-                LinearProgressIndicator(
-                    progress = animatedProgress, // Smoothly animated progress
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(14.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFFFFFFF)),
-                    color = when {
-                        isLeader -> Color(0xFF4CAF50)
-                        isLowest -> Color(0xFFF44336)
-                        else -> Color(0xFFFFC107)
-                    },
-                    trackColor = Color(0xFFFFFFFF).copy(alpha = 0.3f),
-                )
+                    Spacer(modifier = Modifier.width(8.dp)) // Optional: Add spacing between image and progress indicator
+
+                    // Progress Indicator
+                    LinearProgressIndicator(
+                        progress = animatedProgress, // Smoothly animated progress
+                        modifier = Modifier
+                            .fillMaxWidth() // Fill the remaining width of the row
+                            .height(14.dp)
+                            .clip(RoundedCornerShape(12.dp)) // Rounded corners for the progress indicator
+                            .background(Color(0xFFFFFFFF)),
+                        color = when {
+                            isLeader -> Color(0xFF4CAF50) // Green for leader
+                            isLowest -> Color(0xFFF44336) // Red for lowest
+                            else -> Color(0xFFFFC107) // Amber for others
+                        },
+                        trackColor = Color(0xFFFFFFFF).copy(alpha = 0.3f) // Semi-transparent track color
+                    )
+                }
+
             }
         }
     }
