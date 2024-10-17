@@ -374,6 +374,8 @@ fun NotificationScreen(onBackClick: () -> Unit, modifier: Modifier) {
                 for (data in snapshot.children) {
                     val notification = data.getValue(Notification::class.java)
                     if (notification != null) {
+                        // Set the notification's ID from the Firebase key (which is used for deletion later)
+                        notification.id = data.key.orEmpty()
                         notifications.add(notification)
                     } else {
                         Log.e("NotificationScreen", "Fetched notification is null")
@@ -423,19 +425,22 @@ fun NotificationScreen(onBackClick: () -> Unit, modifier: Modifier) {
         if (notifications.isEmpty()) {
             Text(text = "No notifications available", fontSize = 16.sp)
         } else {
-            notifications.forEach { notification ->
-                NotificationItem(notification, onDeleteClick = { notificationId ->
-                    // Delete specific notification from Firebase
-                    database.child(notificationId).removeValue().addOnSuccessListener {
-                        notifications.removeIf { it.id == notificationId } // Remove locally
-                    }.addOnFailureListener {
-                        Log.e("NotificationScreen", "Error deleting notification: ${it.message}")
-                    }
-                })
+            LazyColumn {
+                items(notifications) { notification ->
+                    NotificationItem(notification, onDeleteClick = { notificationId ->
+                        // Delete specific notification from Firebase
+                        database.child(notificationId).removeValue().addOnSuccessListener {
+                            notifications.removeIf { it.id == notificationId } // Remove locally
+                        }.addOnFailureListener {
+                            Log.e("NotificationScreen", "Error deleting notification: ${it.message}")
+                        }
+                    })
+                }
             }
         }
     }
 }
+
 
 @Composable
 fun NotificationItem(notification: Notification, onDeleteClick: (String) -> Unit) {
@@ -480,8 +485,9 @@ fun NotificationItem(notification: Notification, onDeleteClick: (String) -> Unit
     }
 }
 
+
 data class Notification(
-    val id: String ="",
+    var id: String ="",
     val title: String = "",
     val message: String = ""
 )
