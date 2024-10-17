@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -986,17 +987,36 @@ class NewsRepository {
 fun NewsHorizontalGallery(viewModel: NewsViewModel) {
     val articles by viewModel.newsLiveData.observeAsState(emptyList())
     val context = LocalContext.current
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(16.dp))
-        .background(Color.White)
-    )
-    {
+    val listState = rememberLazyListState()
+    var currentIndex by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
 
+    // Automatically scroll forward through the articles
+    LaunchedEffect(key1 = articles, key2 = currentIndex) {
+        if (articles.isNotEmpty()) {
+            scope.launch {
+                delay(3000L) // Wait for 3 seconds before scrolling
+                if (currentIndex < articles.size - 1) {
+                    currentIndex++ // Move to the next article
+                } else {
+                    currentIndex = 0 // Reset to the first article when we reach the end
+                }
+                listState.animateScrollToItem(currentIndex) // Scroll to the article
+            }
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+    ) {
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp), // Adjust height for slideshow feel
+            state = listState // Attach list state to LazyRow
         ) {
             items(articles) { article ->
                 NewsItemCardFancy(
@@ -1016,7 +1036,7 @@ fun NewsHorizontalGallery(viewModel: NewsViewModel) {
 fun NewsItemCardFancy(article: Article, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .width(300.dp) // Width for a slideshow feel
+            .width(400.dp) // Width for a slideshow feel
             .height(300.dp) // Uniform height
             .clickable { onClick() }
             .shadow(8.dp) // Shadow for depth effect
