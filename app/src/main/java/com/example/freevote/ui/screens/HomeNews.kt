@@ -5,6 +5,8 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+
+
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -355,7 +358,7 @@ fun NavigationContent(navController1: NavHostController, paddingValues: PaddingV
         composable("home") { HomeScreen(paddingValues)  }
         composable("vote") { VoteScreen(paddingValues) }
         composable("results") { ResultsScreen(paddingValues) }
-        composable("about") { AboutScreen(paddingValues) }
+        composable("Calender") { Calender() }
     }
 }
 
@@ -440,10 +443,11 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
             } }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Info, contentDescription = "About") },
-            label = { Text("About") },
+            icon = { Icon(Icons.Filled.CalendarToday, contentDescription = "Calendar") }
+            ,
+            label = { Text("Calender") },
             selected = false,
-            onClick = { navController1.navigate("about"){
+            onClick = { navController1.navigate("Calender"){
                 popUpTo("home")// Clear back stack
                 launchSingleTop = true
             } }
@@ -635,7 +639,9 @@ fun CountdownTimerTopBar(timeLeft: Long, modifier: Modifier = Modifier) {
             color = Color.Green,
             fontSize = 16.sp // Larger font size for emphasis
         ),
-        modifier = Modifier.padding(top = 8.dp).background(Color.Black)
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .background(Color.Black)
     )
 }
 
@@ -911,6 +917,7 @@ fun AboutScreen(paddingValues: PaddingValues) {
     }
 }
 
+
 // The function that sets up the UI
 @Composable
 fun MyApp() {
@@ -1078,7 +1085,7 @@ fun VoteSlideshow(
     // Automatically switch slides every few seconds
     LaunchedEffect(Unit) {
         while (true) {
-            kotlinx.coroutines.delay(3000) // Change slide every 3 seconds
+            delay(3000) // Change slide every 3 seconds
             currentSectionIndex = (currentSectionIndex + 1) % sections.size
         }
     }

@@ -61,7 +61,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
         composable("homeScreen") { HomeScreen(Modifier, navController, viewModel) }
         composable("homenews") { MainScreen(navController, viewModel) }
         composable("vote") { VotePage(Modifier, navController, viewModel) }
-        //composable("results") { ResultsScreen(navController, viewModel) }
+        composable("Calender") { Calender() }
         composable("settings") {
             SettingsScreen(
                 viewModel = viewModel,
@@ -127,6 +127,7 @@ fun Navigation(viewModel: MainViewModel, hasAcceptedTerms: Boolean) {
                 modifier = Modifier
             )
         }
+
 
         composable(
             route = "CreatePinScreen/{ID_NUMBER}/{LAST_NAME}/{NAMES}/{PHONE_NUMBER}/{EMAIL}/{GENDER}/{ADDRESS}",
