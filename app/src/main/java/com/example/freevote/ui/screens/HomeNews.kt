@@ -1217,48 +1217,85 @@ fun FetchVotesFromFirebase(paddingValues: PaddingValues) {
 
         database.child("nationalCompensatoryVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val fetchedVotes = snapshot.children.map { dataSnapshot ->
-                    CandidateVotes(
-                        name = dataSnapshot.key.toString(),
-                        votes = dataSnapshot.value.toString().toInt()
-                    )
+                val fetchedVotes = snapshot.children.mapNotNull { dataSnapshot ->
+                    val candidateData = dataSnapshot.value as? Map<String, Any>
+
+                    candidateData?.let {
+                        val voteCount = (it["voteCount"] as? Long)?.toInt() ?: 0 // Safely retrieve vote count
+                        val leaderImageUrl = it["party_leader_image_url"] as? String ?: "" // Retrieve leader image URL
+                        val logoImageUrl = it["party_logo_url"] as? String ?: "" // Retrieve logo image URL
+
+                        CandidateVotes(
+                            name = dataSnapshot.key.toString(),
+                            votes = voteCount,
+                            partyLeaderImageUrl = leaderImageUrl,
+                            partyLogoUrl = logoImageUrl
+                        )
+                    }
                 }
                 nationalCompensatoryVotes = fetchedVotes
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error (e.g., log or show message)
+            }
         })
+
 
         database.child("nationalRegionalVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val regionVotes = snapshot.children.associate { regionSnapshot ->
-                    regionSnapshot.key.toString() to regionSnapshot.children.map { candidateSnapshot ->
-                        CandidateVotes(
-                            name = candidateSnapshot.key.toString(),
-                            votes = candidateSnapshot.value.toString().toInt()
-                        )
-                    }
+                    regionSnapshot.key.toString() to regionSnapshot.children.mapNotNull { candidateSnapshot ->
+                        val candidateData = candidateSnapshot.value as? Map<String, Any>
+
+                        candidateData?.let {
+                            val voteCount = (it["voteCount"] as? Long)?.toInt() ?: 0 // Safely retrieve vote count
+                            val leaderImageUrl = it["party_leader_image_url"] as? String ?: "" // Retrieve leader image URL
+                            val logoImageUrl = it["party_logo_url"] as? String ?: "" // Retrieve logo image URL
+
+                            CandidateVotes(
+                                name = candidateSnapshot.key.toString(),
+                                votes = voteCount,
+                                partyLeaderImageUrl = leaderImageUrl,
+                                partyLogoUrl = logoImageUrl
+                            )
+                        }
+                    }.let { shuffleCandidates(it) } // Shuffle candidates for the region
                 }
                 nationalRegionalVotes = regionVotes
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error (e.g., log or show message)
+            }
         })
 
         database.child("provincialLegislatureVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val legislatureVotes = snapshot.children.associate { regionSnapshot ->
-                    regionSnapshot.key.toString() to regionSnapshot.children.map { candidateSnapshot ->
-                        CandidateVotes(
-                            name = candidateSnapshot.key.toString(),
-                            votes = candidateSnapshot.value.toString().toInt()
-                        )
-                    }
+                    regionSnapshot.key.toString() to regionSnapshot.children.mapNotNull { candidateSnapshot ->
+                        val candidateData = candidateSnapshot.value as? Map<String, Any>
+
+                        candidateData?.let {
+                            val voteCount = (it["voteCount"] as? Long)?.toInt() ?: 0 // Safely retrieve vote count
+                            val leaderImageUrl = it["party_leader_image_url"] as? String ?: "" // Retrieve leader image URL
+                            val logoImageUrl = it["party_logo_url"] as? String ?: "" // Retrieve logo image URL
+
+                            CandidateVotes(
+                                name = candidateSnapshot.key.toString(),
+                                votes = voteCount,
+                                partyLeaderImageUrl = leaderImageUrl,
+                                partyLogoUrl = logoImageUrl
+                            )
+                        }
+                    }.let { shuffleCandidates(it) } // Shuffle candidates for the region
                 }
                 provincialLegislatureVotes = legislatureVotes
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error (e.g., log or show message)
+            }
         })
     }
 

@@ -777,22 +777,28 @@ fun castVote(
     // Perform Firebase updates for each vote
     val updates = mutableMapOf<String, Any>()
 
-    // Update national compensatory vote count
+    // Update national compensatory vote count and store additional details
     nationalVote?.let {
         val nationalPath = "Votes/nationalCompensatoryVotes/${it.abbreviation}"
-        updates[nationalPath] = ServerValue.increment(1)
+        updates["$nationalPath/voteCount"] = ServerValue.increment(1)
+        updates["$nationalPath/party_leader_image_url"] = it.leaderFaceUrl
+        updates["$nationalPath/party_logo_url"] = it.logoUrl
     }
 
-    // Update national regional vote count
+    // Update national regional vote count and store additional details
     if (selectedProvince != null && regionalVote != null) {
         val regionalPath = "Votes/nationalRegionalVotes/${selectedProvince}Votes/${regionalVote.abbreviation}"
-        updates[regionalPath] = ServerValue.increment(1)
+        updates["$regionalPath/voteCount"] = ServerValue.increment(1)
+        updates["$regionalPath/party_leader_image_url"] = regionalVote.leaderFaceUrl
+        updates["$regionalPath/party_logo_url"] = regionalVote.logoUrl
     }
 
-    // Update provincial legislature vote count
+    // Update provincial legislature vote count and store additional details
     if (selectedProvince != null && provincialVote != null) {
         val provincialPath = "Votes/provincialLegislatureVotes/${selectedProvince}Votes/${provincialVote.abbreviation}"
-        updates[provincialPath] = ServerValue.increment(1)
+        updates["$provincialPath/voteCount"] = ServerValue.increment(1)
+        updates["$provincialPath/party_leader_image_url"] = provincialVote.leaderFaceUrl
+        updates["$provincialPath/party_logo_url"] = provincialVote.logoUrl
     }
 
     // Apply all updates to the Firebase database

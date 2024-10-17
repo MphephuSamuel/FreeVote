@@ -52,7 +52,13 @@ fun ResultsScreen(paddingValues: PaddingValues) {
     }
 }
 
-data class CandidateVotes(val name: String, val votes: Int)
+data class CandidateVotes(
+    val name: String,
+    val votes: Int,
+    val partyLeaderImageUrl: String,
+    val partyLogoUrl: String
+)
+
 
 @Composable
 fun FetchVotesFromFirebase() {
@@ -67,57 +73,105 @@ fun FetchVotesFromFirebase() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val fetchedVotes = snapshot.children.mapNotNull { dataSnapshot ->
                     val name = dataSnapshot.key
-                    val votes = dataSnapshot.value?.toString()?.toIntOrNull()
-                    if (name != null && votes != null) {
-                        CandidateVotes(name = name, votes = votes)
-                    } else {
-                        null // Safeguard against null values
-                    }
-                }
-                nationalCompensatoryVotes = shuffleCandidates(fetchedVotes)
-            }
+                    val voteData = dataSnapshot.value as? Map<String, Any>
 
-            override fun onCancelled(error: DatabaseError) {}
-        })
+                    voteData?.let {
+                        val voteCount = (it["voteCount"] as? Long)?.toInt() ?: 0 // Safely retrieve vote count
+                        val leaderImageUrl = it["party_leader_image_url"] as? String ?: "" // Retrieve leader image URL
+                        val logoImageUrl = it["party_logo_url"] as? String ?: "" // Retrieve logo image URL
 
-        database.child("nationalRegionalVotes").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val regionVotes = snapshot.children.associate { regionSnapshot ->
-                    regionSnapshot.key.toString() to regionSnapshot.children.mapNotNull { candidateSnapshot ->
-                        val name = candidateSnapshot.key
-                        val votes = candidateSnapshot.value?.toString()?.toIntOrNull()
-                        if (name != null && votes != null) {
-                            CandidateVotes(name = name, votes = votes)
+                        if (name != null) {
+                            CandidateVotes(
+                                name = name,
+                                votes = voteCount,
+                                partyLeaderImageUrl = leaderImageUrl,
+                                partyLogoUrl = logoImageUrl
+                            )
                         } else {
                             null
                         }
-                    }.let { shuffleCandidates(it) } // Shuffle candidates for the region
+                    }
                 }
-                nationalRegionalVotes = regionVotes
+
+                nationalCompensatoryVotes = shuffleCandidates(fetchedVotes) // Shuffle and update votes list
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error, e.g., logging
+            }
         })
+
+
+
+    database.child("nationalRegionalVotes").addValueEventListener(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val regionVotes = snapshot.children.associate { regionSnapshot ->
+                regionSnapshot.key.toString() to regionSnapshot.children.mapNotNull { candidateSnapshot ->
+                    val name = candidateSnapshot.key
+                    val candidateData = candidateSnapshot.value as? Map<String, Any>
+
+                    candidateData?.let {
+                        val voteCount = (it["voteCount"] as? Long)?.toInt() ?: 0 // Safely retrieve vote count
+                        val leaderImageUrl = it["party_leader_image_url"] as? String ?: "" // Retrieve leader image URL
+                        val logoImageUrl = it["party_logo_url"] as? String ?: "" // Retrieve logo image URL
+
+                        if (name != null) {
+                            CandidateVotes(
+                                name = name,
+                                votes = voteCount,
+                                partyLeaderImageUrl = leaderImageUrl,
+                                partyLogoUrl = logoImageUrl
+                            )
+                        } else {
+                            null
+                        }
+                    }
+                }.let { shuffleCandidates(it) } // Shuffle candidates for the region
+            }
+            nationalRegionalVotes = regionVotes
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            // Handle error, e.g., logging
+        }
+    })
+
 
         database.child("provincialLegislatureVotes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val legislatureVotes = snapshot.children.associate { regionSnapshot ->
                     regionSnapshot.key.toString() to regionSnapshot.children.mapNotNull { candidateSnapshot ->
                         val name = candidateSnapshot.key
-                        val votes = candidateSnapshot.value?.toString()?.toIntOrNull()
-                        if (name != null && votes != null) {
-                            CandidateVotes(name = name, votes = votes)
-                        } else {
-                            null
+                        val candidateData = candidateSnapshot.value as? Map<String, Any>
+
+                        candidateData?.let {
+                            val voteCount = (it["voteCount"] as? Long)?.toInt() ?: 0 // Safely retrieve vote count
+                            val leaderImageUrl = it["party_leader_image_url"] as? String ?: "" // Retrieve leader image URL
+                            val logoImageUrl = it["party_logo_url"] as? String ?: "" // Retrieve logo image URL
+
+                            if (name != null) {
+                                CandidateVotes(
+                                    name = name,
+                                    votes = voteCount,
+                                    partyLeaderImageUrl = leaderImageUrl,
+                                    partyLogoUrl = logoImageUrl
+                                )
+                            } else {
+                                null
+                            }
                         }
                     }.let { shuffleCandidates(it) } // Shuffle candidates for the region
                 }
                 provincialLegislatureVotes = legislatureVotes
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error (e.g., log)
+            }
         })
+
     }
+
 
     DisplayVoteResults(nationalCompensatoryVotes, nationalRegionalVotes, provincialLegislatureVotes)
 }
