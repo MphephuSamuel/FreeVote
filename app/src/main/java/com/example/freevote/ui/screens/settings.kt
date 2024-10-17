@@ -49,7 +49,8 @@ fun SettingsScreen(
             onAccountClick = { currentScreen = "account" },
             onHelpClick = { currentScreen = "help" },
             onPrivacyClick = { currentScreen = "privacy" },
-            onNotificationClick = { currentScreen = "notifications" }, // Added for notification screen
+            onNotificationClick = { currentScreen = "notifications" },
+            onAboutClick = { currentScreen = "about" },// Added for notification screen
             navController = navController,
             modifier = modifier
         )
@@ -74,6 +75,8 @@ fun SettingsScreen(
             onBackClick = { currentScreen = "settings" },
             modifier = modifier
         )
+        "about" -> AboutScreen(paddingValues = PaddingValues(),
+            onBackClick = { currentScreen = "settings" })
     }
 }
 
@@ -82,6 +85,7 @@ fun SettingsList(
     onBackClick: () -> Unit,
     onAccountClick: () -> Unit,
     onHelpClick: () -> Unit,
+    onAboutClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onNotificationClick: () -> Unit, // Added for notification
     navController: NavController,
@@ -102,6 +106,7 @@ fun SettingsList(
         SettingItem(icon = Icons.Default.AccountCircle, title = "Account", onClick = onAccountClick)
         SettingItem(icon = Icons.Default.Notifications, title = "Notifications", onClick = onNotificationClick) // Navigate to notifications
         SettingItem(icon = Icons.Default.Info, title = "Help", onClick = onHelpClick)
+        SettingItem(icon = Icons.Default.Lock, title = "About", onClick = onAboutClick)
     }
 }
 

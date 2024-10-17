@@ -816,7 +816,7 @@ fun StatisticsScreen(paddingValues: PaddingValues) {
 
 
 @Composable
-fun AboutScreen(paddingValues: PaddingValues) {
+fun AboutScreen(paddingValues: PaddingValues, onBackClick: () -> Unit) {
     // Content for About
     Box(
         modifier = Modifier
