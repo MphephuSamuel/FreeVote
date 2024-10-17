@@ -109,7 +109,7 @@ fun CreatePinScreen(
                     textAlign = TextAlign.Center,
                     fontSize = 33.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp)
+                    fontFamily = rubikMoonrocksFont
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 TextField(

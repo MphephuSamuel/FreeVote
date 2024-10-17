@@ -136,7 +136,7 @@ fun RegistrationScreen(modifier: Modifier = Modifier, navController: NavControll
                     color = Color.Red,
                     fontSize = 33.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp)
+                    fontFamily = rubikMoonrocksFont
                 )
 
                 // Input fields using ViewModel state

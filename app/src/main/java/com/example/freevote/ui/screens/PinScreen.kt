@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -199,16 +200,17 @@ fun PinScreen(navController: NavController,
                             }
                         },
                         modifier = Modifier
-                            .padding(start = 1.dp) // Add space between text field and button
-                            .size(57.dp), // Match the height of the TextField
-                        shape = RectangleShape, // Rectangular shape
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911)) // Yellow background
+                            .padding(start = 1.dp) // Adjust as needed for outside padding
+                            .size(57.dp), // Adjust the button size
+                        shape = RoundedCornerShape(0.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911)),
+                        contentPadding = PaddingValues(0.dp) // Remove padding inside the button
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowForward,
                             contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(150.dp) // Set the icon size
+                            tint = Color(0xFF006400),
+                            modifier = Modifier.fillMaxWidth() // Set the icon size
                         )
                     }
                 }

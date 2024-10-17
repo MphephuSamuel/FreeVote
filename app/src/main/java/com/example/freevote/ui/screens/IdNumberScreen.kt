@@ -235,16 +235,17 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
                             }
                         },
                         modifier = Modifier
-                            .padding(start = 1.dp) // Add space between text field and button
-                            .size(57.dp), // Adjust size to match TextField height
+                            .padding(start = 1.dp) // Adjust as needed for outside padding
+                            .size(57.dp), // Adjust the button size
                         shape = RoundedCornerShape(0.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911))
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1A911)),
+                        contentPadding = PaddingValues(0.dp) // Remove padding inside the button
                     ) {
                         Icon(
-                            Icons.Filled.ArrowForward,
+                            imageVector = Icons.Default.ArrowForward,
                             contentDescription = null,
-                            tint = White,
-                            modifier = Modifier.size(200.dp) // Set the icon size
+                            tint = Color(0xFF006400),
+                            modifier = Modifier.fillMaxWidth() // Set the icon size
                         )
                     }
                 }
@@ -308,8 +309,6 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
         )
     }
 }
-
-
 
 @Composable
 fun Header() {
