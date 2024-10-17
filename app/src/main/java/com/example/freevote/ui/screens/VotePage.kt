@@ -132,6 +132,7 @@ fun VotePage(modifier: Modifier, navController: NavController, viewModel: MainVi
             ),
             modifier = Modifier.padding(16.dp)
         )
+        TimerScreen(modifier = Modifier)
 
         // Location selection section
         BoxWithConstraints(

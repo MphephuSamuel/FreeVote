@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -46,11 +47,14 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -215,33 +219,21 @@ fun PinScreen(navController: NavController,
         Spacer(modifier = Modifier.height(16.dp))
 
         // Forget PIN? and Reset Button
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        ) {
-            Text(text = "Forget PIN?", fontSize = 16.sp)
+
             Spacer(modifier = Modifier.width(10.dp))
-            Button(
-                onClick = {
-                    // Reset PIN
-                    navController.navigate("forgotPin/$idNumber")
-                    pin = TextFieldValue("")
-                    viewModel.updatePinCode("") // Reset PIN in ViewModel as well
-                    Toast.makeText(context, "PIN Reset", Toast.LENGTH_SHORT).show()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0E7609),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier.padding(1.dp),
-                shape = RoundedCornerShape(0.dp)
-            ) {
-                Text("Reset", modifier = Modifier.padding(horizontal = 10.dp, vertical = 1.dp))
-            }
-        }
+        ClickableText(
+            text = AnnotatedString("Forgot PIN?"),
+            onClick = {
+                // Handle click
+                navController.navigate("forgotPin/$idNumber")
+            },
+            style = TextStyle(
+                color = Color.Black,
+                fontSize = 16.sp, // Adjust font size as needed
+                textDecoration = TextDecoration.Underline //
+            ),
+            modifier = Modifier.align(alignment = Alignment.Start),
+        )
 
         // Illustrations of people voting
         Spacer(modifier = Modifier.height(65.dp))

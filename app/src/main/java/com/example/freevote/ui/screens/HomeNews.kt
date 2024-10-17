@@ -5,8 +5,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-
-
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -19,13 +17,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -359,7 +355,7 @@ fun NavigationContent(navController1: NavHostController, paddingValues: PaddingV
         composable("home") { HomeScreen(paddingValues)  }
         composable("vote") { VoteScreen(paddingValues) }
         composable("results") { ResultsScreen(paddingValues) }
-        composable("Calender") { Calender() }
+        composable("about") { AboutScreen(paddingValues) }
     }
 }
 
@@ -444,11 +440,10 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
             } }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.CalendarToday, contentDescription = "Calendar") }
-            ,
-            label = { Text("Calender") },
+            icon = { Icon(Icons.Filled.Info, contentDescription = "About") },
+            label = { Text("About") },
             selected = false,
-            onClick = { navController1.navigate("Calender"){
+            onClick = { navController1.navigate("about"){
                 popUpTo("home")// Clear back stack
                 launchSingleTop = true
             } }
@@ -640,9 +635,7 @@ fun CountdownTimerTopBar(timeLeft: Long, modifier: Modifier = Modifier) {
             color = Color.Green,
             fontSize = 16.sp // Larger font size for emphasis
         ),
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .background(Color.Black)
+        modifier = Modifier.padding(top = 8.dp).background(Color.Black)
     )
 }
 
@@ -815,6 +808,109 @@ fun StatisticsScreen(paddingValues: PaddingValues) {
 }
 
 
+@Composable
+fun AboutScreen(paddingValues: PaddingValues) {
+    // Content for About
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White) // Set background to white
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()), // Enable vertical scrolling
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Text(
+                text = "About the Free Vote App",
+                fontSize = 24.sp,
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Text(
+                text = "The Free Vote App is an innovative and user-friendly mobile application designed to revolutionize the voting process in South Africa. Developed by the BlackBulls group, the app is tailored specifically to facilitate and streamline national compensatory, national regional, and provincial legislature voting. Our mission is to empower every South African voter by providing a secure, accessible, and transparent platform that ensures their voices are heard during elections.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Text(
+                text = "Our Purpose",
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Text(
+                text = "In South Africa’s democratic landscape, voting is the cornerstone of civic participation. The Free Vote App is designed to simplify the complex electoral process, ensuring that voters can participate seamlessly in all types of elections, from national compensatory votes to regional and provincial legislature elections. This app provides an efficient digital solution, making it easier for citizens to cast their votes securely and confidently.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Text(
+                text = "Key Features",
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Text(
+                text = "- User-Centric Design: Built with a focus on usability, ensuring voters can navigate the platform with ease.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            Text(
+                text = "- Comprehensive Voting Options: Users can participate in national compensatory, national regional, and provincial legislature elections.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            Text(
+                text = "- Secure Voting: Using advanced encryption, the app ensures the integrity and security of the voting process.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            Text(
+                text = "- Accessibility and Inclusivity: The app is inclusive, providing access to voters in urban, rural, and underserved communities.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            Text(
+                text = "Designed by the BlackBulls Group",
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Text(
+                text = "The BlackBulls group, a team of dedicated South African developers, is passionate about using technology to improve societal systems. Our goal is to simplify the voting process and promote transparency, accuracy, and accessibility in elections.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Text(
+                text = "Our Vision",
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Text(
+                text = "Our vision is to empower South Africans through technology, ensuring that voting is simple, secure, and accessible for everyone. We aim to encourage higher voter turnout and ensure that every South African can have a voice in shaping the country’s future.",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+    }
+}
+
 // The function that sets up the UI
 @Composable
 fun MyApp() {
@@ -883,36 +979,17 @@ class NewsRepository {
 fun NewsHorizontalGallery(viewModel: NewsViewModel) {
     val articles by viewModel.newsLiveData.observeAsState(emptyList())
     val context = LocalContext.current
-    val listState = rememberLazyListState()
-    var currentIndex by remember { mutableStateOf(0) }
-    val scope = rememberCoroutineScope()
+    Card(modifier = Modifier
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(16.dp))
+        .background(Color.White)
+    )
+    {
 
-    // Automatically scroll forward through the articles
-    LaunchedEffect(key1 = articles, key2 = currentIndex) {
-        if (articles.isNotEmpty()) {
-            scope.launch {
-                delay(3000L) // Wait for 3 seconds before scrolling
-                if (currentIndex < articles.size - 1) {
-                    currentIndex++ // Move to the next article
-                } else {
-                    currentIndex = 0 // Reset to the first article when we reach the end
-                }
-                listState.animateScrollToItem(currentIndex) // Scroll to the article
-            }
-        }
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-    ) {
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp), // Adjust height for slideshow feel
-            state = listState // Attach list state to LazyRow
         ) {
             items(articles) { article ->
                 NewsItemCardFancy(
@@ -932,7 +1009,7 @@ fun NewsHorizontalGallery(viewModel: NewsViewModel) {
 fun NewsItemCardFancy(article: Article, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .width(400.dp) // Width for a slideshow feel
+            .width(300.dp) // Width for a slideshow feel
             .height(300.dp) // Uniform height
             .clickable { onClick() }
             .shadow(8.dp) // Shadow for depth effect
@@ -1001,7 +1078,7 @@ fun VoteSlideshow(
     // Automatically switch slides every few seconds
     LaunchedEffect(Unit) {
         while (true) {
-            delay(3000) // Change slide every 3 seconds
+            kotlinx.coroutines.delay(3000) // Change slide every 3 seconds
             currentSectionIndex = (currentSectionIndex + 1) % sections.size
         }
     }
@@ -1188,4 +1265,20 @@ fun Map<String, List<CandidateVotes>>.flattenToTop5(): List<CandidateVotes> {
 }
 
 
+// Preview function to see the UI in Android Studio's preview window
+
+@Composable
+fun PreviewMyApp() {
+    // Dummy data for preview
+    val dummyViewModel = NewsViewModel().apply {
+        newsLiveData.value = listOf(
+            Article("Preview Title 1", null, "Preview Description 1", "https://example.com"),
+            Article("Preview Title 2", null, "Preview Description 2", "https://example.com"),
+            Article("Preview Title 3", null, "Preview Description 3", "https://example.com"),
+            Article("Preview Title 4", null, "Preview Description 4", "https://example.com"),
+            Article("Preview Title 5", null, "Preview Description 5", "https://example.com")
+        )
+    }
+    NewsHorizontalGallery(viewModel = dummyViewModel)
+}
 

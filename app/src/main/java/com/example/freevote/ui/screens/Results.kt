@@ -46,6 +46,7 @@ fun ResultsScreen(paddingValues: PaddingValues) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            TimerScreen(modifier = Modifier)
             FetchVotesFromFirebase()
         }
     }
@@ -287,14 +288,10 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
     }
 }
 
-
 // Function to shuffle candidates based on votes
 fun shuffleCandidates(candidates: List<CandidateVotes>): List<CandidateVotes> {
     return candidates.sortedBy { it.votes }.shuffled() // Sort first (if needed) and then shuffle
 }
-
-
-
 
 fun DrawScope.drawCustomShadow() {
     val shadowColor = Color.Black.copy(alpha = 0.2f)
