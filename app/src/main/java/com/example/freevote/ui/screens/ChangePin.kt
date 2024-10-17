@@ -1,5 +1,6 @@
 package com.example.freevote.ui.screens
 
+
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.example.freevote.R
+import com.example.freevote.chatbot.ChatBot
 import com.example.freevote.viewmodel.MainViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.EmailAuthProvider
@@ -63,7 +65,6 @@ fun ChangePinScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Spacer(modifier = Modifier.height(30.dp))
 
             // Current PIN Input Field
@@ -131,8 +132,12 @@ fun ChangePinScreen(
                 Text("Update PIN")
             }
         }
+
+        // ChatBot placed at the bottom-right corner of the screen
+        ChatBot(navController = navController)
     }
 }
+
 
 // Function to update the PIN (password) using reauthentication
 private fun updatePin(currentPin: String, newPin: String, context: Context, navController: NavController, idNumber: String) {
