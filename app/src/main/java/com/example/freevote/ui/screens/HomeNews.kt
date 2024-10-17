@@ -317,7 +317,6 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
                                     )
                                 )
                             )
-                            TimerScreenTopBar(modifier = Modifier)
                         }
                     },
                     navigationIcon = {
@@ -428,7 +427,11 @@ fun BottomNavigationBar(navController1: NavHostController, navController: NavCon
 
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.DateRange, contentDescription = "Results") },
+            icon = { Image(
+                painter = painterResource(id = R.drawable.result_icon), // Replace with your drawable resource
+                contentDescription = "Vote",
+                modifier = Modifier.size(25.dp)
+            ) },
             label = { Text("Results") },
             selected = false,
             onClick = { navController1.navigate("results"){
