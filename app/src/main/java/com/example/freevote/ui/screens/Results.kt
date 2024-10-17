@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.google.firebase.database.*
 
 
@@ -262,29 +264,20 @@ fun DisplayRegionalVotesCard(votes: Map<String, List<CandidateVotes>>, title: St
 fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
     val totalVotes = candidateVotes.sumOf { it.votes }
 
-    // Calculate candidate percentages and sort
     val rankedCandidates = candidateVotes.map { candidate ->
         val votePercentage = if (totalVotes > 0) candidate.votes.toFloat() / totalVotes else 0f
         candidate to (votePercentage * 100)
     }.sortedByDescending { it.second }
 
-    // Get highest and lowest vote percentages
-    val highestPercentage = rankedCandidates.maxOfOrNull { it.second } ?: 0f
-    val lowestPercentage = rankedCandidates.minOfOrNull { it.second } ?: 0f
-
     rankedCandidates.forEachIndexed { index, (candidate, percentage) ->
-
         val targetProgress = percentage / 100
         val animatedProgress by animateFloatAsState(
             targetValue = targetProgress,
             animationSpec = tween(
-                durationMillis = 1000, // Duration for smooth climbing effect
-                easing = FastOutSlowInEasing // Easing function for gradual start and finish
+                durationMillis = 1000,
+                easing = FastOutSlowInEasing
             )
         )
-
-        val isLeader = percentage == highestPercentage
-        val isLowest = percentage == lowestPercentage
 
         Card(
             modifier = Modifier
@@ -292,12 +285,6 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                 .padding(vertical = 6.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .shadow(3.dp)
-                .border(
-                    width = 2.dp,
-                    color = if (isLeader) Color(0xFF4CAF50) else Color(0xFF000000),
-                    shape = RoundedCornerShape(16.dp)
-                ),
-            colors = CardDefaults.cardColors(containerColor = if (isLeader) Color(0xFFE0F7FA) else Color(0xFFE0E0E0))
         ) {
             Column(
                 modifier = Modifier
@@ -309,6 +296,13 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    // Display the party leader image
+                    AsyncImage(
+                        model = candidate.partyLogoUrl,
+                        contentDescription = "Leader Image for ${candidate.name}",
+                        modifier = Modifier.size(40.dp)
+                            .clip(CircleShape) // Make it circular
+                    )
                     Text(
                         text = candidate.name,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
@@ -317,30 +311,26 @@ fun DisplayProgressBarsForCategory(candidateVotes: List<CandidateVotes>) {
                     Text(
                         text = "${candidate.votes} votes (${String.format("%.2f%%", percentage)})",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = if (isLeader) FontWeight.Bold else FontWeight.Normal
+                            fontWeight = FontWeight.Normal
                         ),
                         color = Color(0xFF4F4F4F)
                     )
                 }
 
                 LinearProgressIndicator(
-                    progress = animatedProgress, // Smoothly animated progress
+                    progress = animatedProgress,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(14.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFFFFFFF)),
-                    color = when {
-                        isLeader -> Color(0xFF4CAF50)
-                        isLowest -> Color(0xFFF44336)
-                        else -> Color(0xFFFFC107)
-                    },
+                        .clip(RoundedCornerShape(12.dp)),
+                    color = Color(0xFF4CAF50),
                     trackColor = Color(0xFFFFFFFF).copy(alpha = 0.3f),
                 )
             }
         }
     }
 }
+
 
 // Function to shuffle candidates based on votes
 fun shuffleCandidates(candidates: List<CandidateVotes>): List<CandidateVotes> {
