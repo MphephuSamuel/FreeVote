@@ -309,6 +309,8 @@ fun IdNumberScreen(navController: NavHostController, viewModel: MainViewModel) {
     }
 }
 
+
+
 @Composable
 fun Header() {
     Row(
